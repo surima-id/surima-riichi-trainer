@@ -51,6 +51,69 @@ interface Group {
   entries: Entry[]
 }
 
+/**
+ * The five yakuhai are one concept, not five.
+ *
+ * The engine scores them separately because each has its own trigger and they
+ * stack — East as both seat and round wind is two han — but as a reference
+ * entry, five near-identical rows saying "1 han, triplet of a dragon" is worse
+ * than one row that shows all five triplets side by side.
+ */
+const YAKUHAI_IDS: YakuId[] = [
+  'yakuhai-haku',
+  'yakuhai-hatsu',
+  'yakuhai-chun',
+  'yakuhai-seat',
+  'yakuhai-round',
+]
+const YAKUHAI_SET = new Set<YakuId>(YAKUHAI_IDS)
+
+/** The merged yakuhai entry: one card, the five qualifying triplets shown together. */
+function YakuhaiCard() {
+  const t = useT()
+
+  return (
+    <div className="border-b border-black/5 py-4 last:border-0 dark:border-white/5">
+      <div className="mb-2 flex flex-wrap items-baseline gap-x-2 gap-y-1">
+        <h4 className="font-semibold">{t.t('yakuPage.yakuhaiName')}</h4>
+        <span className="text-sm text-black/55 dark:text-white/55">
+          ({t.t('yakuPage.yakuhaiGloss')})
+        </span>
+        <span className="ml-auto flex gap-1.5">
+          <Badge tone="neutral">
+            {t.t('yakuPage.closed')} {t.han(1)}
+          </Badge>
+          <Badge tone="neutral">
+            {t.t('yakuPage.open')} {t.han(1)}
+          </Badge>
+        </span>
+      </div>
+      <p className="mb-3 text-sm text-black/60 dark:text-white/60">
+        {t.t('yakuPage.yakuhaiNote')}
+      </p>
+      <div className="flex flex-wrap gap-x-5 gap-y-3">
+        {YAKUHAI_IDS.map((id) => (
+          <div key={id}>
+            <p className="mb-1 text-xs text-black/50 dark:text-white/50">
+              {t.romaji(id)} <span className="text-black/35 dark:text-white/35">({t.yaku(id)})</span>
+            </p>
+            <Hand tiles={parseTiles(TRIPLETS[id])} size="xs" sort={false} />
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+/** Just the scoring triplet for each yakuhai — the rest of the hand is noise here. */
+const TRIPLETS: Record<string, string> = {
+  'yakuhai-haku': '555z',
+  'yakuhai-hatsu': '666z',
+  'yakuhai-chun': '777z',
+  'yakuhai-seat': '111z',
+  'yakuhai-round': '111z',
+}
+
 function YakuCard({ entry }: { entry: Entry }) {
   const t = useT()
   const sample = YAKU_SAMPLES[entry.id]
@@ -110,9 +173,14 @@ function YakuReference() {
       }
     })
 
-    const yakuman = visible.filter((y) => y.yakuman > 0)
-    const situational = visible.filter((y) => y.yakuman === 0 && SITUATIONAL.has(y.id))
-    const shape = visible.filter((y) => y.yakuman === 0 && !SITUATIONAL.has(y.id))
+    // Keep one yakuhai as the anchor for the merged card and drop the rest.
+    const merged = visible.filter(
+      (y) => !YAKUHAI_SET.has(y.id) || y.id === YAKUHAI_IDS[0],
+    )
+
+    const yakuman = merged.filter((y) => y.yakuman > 0)
+    const situational = merged.filter((y) => y.yakuman === 0 && SITUATIONAL.has(y.id))
+    const shape = merged.filter((y) => y.yakuman === 0 && !SITUATIONAL.has(y.id))
 
     const byHan = new Map<number, Entry[]>()
     for (const entry of shape) {
@@ -176,9 +244,13 @@ function YakuReference() {
             <p className="mb-2 text-sm text-black/55 dark:text-white/55">{group.note}</p>
           )}
           <Card>
-            {group.entries.map((entry) => (
-              <YakuCard key={entry.id} entry={entry} />
-            ))}
+            {group.entries.map((entry) =>
+              entry.id === YAKUHAI_IDS[0] ? (
+                <YakuhaiCard key="yakuhai" />
+              ) : (
+                <YakuCard key={entry.id} entry={entry} />
+              ),
+            )}
           </Card>
         </section>
       ))}

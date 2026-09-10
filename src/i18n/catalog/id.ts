@@ -309,6 +309,9 @@ export const messages = {
   'yakuPage.group.situational': 'Situasional',
   'yakuPage.group.yakuman': 'Yakuman',
   'yakuPage.situationalNote': 'Yaku ini bergantung pada bagaimana dan kapan kamu menang, bukan pada tile-nya.',
+  'yakuPage.yakuhaiName': 'Yakuhai',
+  'yakuPage.yakuhaiGloss': 'Tile Bernilai',
+  'yakuPage.yakuhaiNote': 'Triplet naga apa pun, atau angin tempat/putaranmu. Tiap sumber dihitung sendiri \u2014 Timur sebagai angin tempat sekaligus angin putaran bernilai 2 han.',
   'yakuPage.example': 'Contoh',
   'yakuPage.notAvailable': '—',
   // ---- Lesson: Tiles ----

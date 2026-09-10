@@ -344,6 +344,9 @@ export const messages = {
   'yakuPage.group.yakuman': 'Yakuman',
   'yakuPage.situationalNote':
     'These depend on how and when you won rather than on the tiles themselves.',
+  'yakuPage.yakuhaiName': 'Yakuhai',
+  'yakuPage.yakuhaiGloss': 'Value Tiles',
+  'yakuPage.yakuhaiNote': 'A triplet of any dragon, or of your seat or round wind. Each source counts on its own \u2014 East as both your seat and the round wind is worth 2 han.',
   'yakuPage.example': 'Example',
   'yakuPage.notAvailable': '\u2014',
 
