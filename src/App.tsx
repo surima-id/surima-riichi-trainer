@@ -1,0 +1,98 @@
+import { Link, NavLink, Route, Routes } from 'react-router-dom'
+import { Home } from './routes/Home'
+import { TilesLesson } from './routes/Tiles'
+import { ShapesLesson } from './routes/Shapes'
+import { YakuLesson } from './routes/Yaku'
+import { HanLesson } from './routes/Han'
+import { FuLesson } from './routes/Fu'
+import { ScoreLesson } from './routes/Score'
+import { EfficiencyLesson } from './routes/Efficiency'
+import { Sandbox } from './routes/Sandbox'
+import { LANGS, LANG_LABELS, useI18n, type MessageKey } from './i18n'
+
+const NAV: { to: string; key: MessageKey }[] = [
+  { to: '/tiles', key: 'nav.tiles' },
+  { to: '/shapes', key: 'nav.shapes' },
+  { to: '/yaku', key: 'nav.yaku' },
+  { to: '/han', key: 'nav.han' },
+  { to: '/fu', key: 'nav.fu' },
+  { to: '/score', key: 'nav.score' },
+  { to: '/efficiency', key: 'nav.efficiency' },
+  { to: '/sandbox', key: 'nav.sandbox' },
+]
+
+function LanguageToggle() {
+  const { lang, setLang, t } = useI18n()
+  return (
+    <div
+      className="ml-auto flex overflow-hidden rounded-lg border border-black/10 dark:border-white/15"
+      role="group"
+      aria-label={t.t('lang.switch')}
+    >
+      {LANGS.map((option) => (
+        <button
+          key={option}
+          type="button"
+          onClick={() => setLang(option)}
+          aria-pressed={lang === option}
+          className={`px-2.5 py-1 text-xs font-medium transition ${
+            lang === option
+              ? 'bg-felt-700 text-white dark:bg-felt-100 dark:text-felt-900'
+              : 'text-black/55 hover:bg-black/5 dark:text-white/55 dark:hover:bg-white/10'
+          }`}
+        >
+          {LANG_LABELS[option]}
+        </button>
+      ))}
+    </div>
+  )
+}
+
+function Nav() {
+  const { t } = useI18n()
+  return (
+    <nav className="sticky top-0 z-10 border-b border-black/10 bg-felt-50/85 backdrop-blur dark:border-white/10 dark:bg-felt-900/85">
+      <div className="mx-auto flex max-w-4xl flex-wrap items-center gap-x-1 gap-y-1 px-4 py-2 sm:px-6">
+        <Link to="/" className="mr-3 font-semibold tracking-tight">
+          {t.t('app.name')}
+        </Link>
+        {NAV.map((item) => (
+          <NavLink
+            key={item.to}
+            to={item.to}
+            className={({ isActive }) =>
+              `rounded-md px-2.5 py-1 text-sm transition ${
+                isActive
+                  ? 'bg-black/10 font-medium dark:bg-white/15'
+                  : 'text-black/60 hover:bg-black/5 dark:text-white/60 dark:hover:bg-white/10'
+              }`
+            }
+          >
+            {t.t(item.key)}
+          </NavLink>
+        ))}
+        <LanguageToggle />
+      </div>
+    </nav>
+  )
+}
+
+export default function App() {
+  return (
+    <div className="min-h-full">
+      <Nav />
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/tiles" element={<TilesLesson />} />
+        <Route path="/shapes" element={<ShapesLesson />} />
+        <Route path="/yaku" element={<YakuLesson />} />
+        <Route path="/han" element={<HanLesson />} />
+        <Route path="/fu" element={<FuLesson />} />
+        <Route path="/score" element={<ScoreLesson />} />
+        <Route path="/efficiency" element={<EfficiencyLesson />} />
+        <Route path="/sandbox" element={<Sandbox />} />
+        <Route path="*" element={<Home />} />
+      </Routes>
+    </div>
+  )
+}

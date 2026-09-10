@@ -1,0 +1,542 @@
+/**
+ * English messages.
+ *
+ * `id.ts` is the source of truth for the key set; this file is checked against
+ * it with `satisfies Messages`, so a key added there and forgotten here fails
+ * the build rather than rendering blank on the page.
+ */
+
+import { type Messages } from '../types'
+
+export const messages = {
+  // ---- Language & chrome ----
+  'app.name': 'Surima',
+  'app.tagline':
+    'A trainer for new riichi mahjong players. Work through the modules in order \u2014 each one teaches a piece, then quizzes you on generated hands until it sticks.',
+  'lang.switch': 'Language',
+
+  'nav.tiles': 'Tiles',
+  'nav.shapes': 'Hands',
+  'nav.yaku': 'Yaku',
+  'nav.han': 'Han',
+  'nav.fu': 'Fu',
+  'nav.score': 'Score',
+  'nav.efficiency': 'Efficiency',
+  'nav.sandbox': 'Sandbox',
+
+  // ---- Tile naming ----
+  'tile.of': 'of',
+  'tile.red': 'Red',
+  'tile.faceDown': 'Face-down tile',
+  'tile.rank.1': 'One',
+  'tile.rank.2': 'Two',
+  'tile.rank.3': 'Three',
+  'tile.rank.4': 'Four',
+  'tile.rank.5': 'Five',
+  'tile.rank.6': 'Six',
+  'tile.rank.7': 'Seven',
+  'tile.rank.8': 'Eight',
+  'tile.rank.9': 'Nine',
+  'tile.suit.m': 'Characters',
+  'tile.suit.p': 'Circles',
+  'tile.suit.s': 'Bamboo',
+  'tile.suit.z': 'Honors',
+  'tile.honor.east': 'East',
+  'tile.honor.south': 'South',
+  'tile.honor.west': 'West',
+  'tile.honor.north': 'North',
+  'tile.honor.haku': 'White Dragon',
+  'tile.honor.hatsu': 'Green Dragon',
+  'tile.honor.chun': 'Red Dragon',
+
+  // ---- Notation errors ----
+  'error.unexpected-char': 'Unexpected character "{char}" in hand notation.',
+  'error.suit-without-digits': 'Suit "{char}" has no digits before it.',
+  'error.honor-out-of-range': 'Honor tile "{digit}z" does not exist.',
+  'error.trailing-digits': 'The notation ends with digits that have no suit.',
+  'error.expected-one-tile': 'Enter exactly one winning tile.',
+
+  // ---- Waits ----
+  'wait.ryanmen.short': 'Two-sided wait',
+  'wait.penchan.short': 'Edge wait',
+  'wait.kanchan.short': 'Closed wait',
+  'wait.shanpon.short': 'Dual-triplet wait',
+  'wait.tanki.short': 'Pair wait',
+  'wait.ryanmen.long': 'Two-sided wait (ryanmen)',
+  'wait.penchan.long': 'Edge wait (penchan)',
+  'wait.kanchan.long': 'Closed wait (kanchan)',
+  'wait.shanpon.long': 'Dual-triplet wait (shanpon)',
+  'wait.tanki.long': 'Pair wait (tanki)',
+
+  // ---- Fu breakdown ----
+  'fu.base': 'Base',
+  'fu.menzen-ron': 'Menzen ron (closed hand, won on a discard)',
+  'fu.menzen-ron.detail': 'Menzen ron bonus',
+  'fu.tsumo': 'Tsumo (Self-draw)',
+  'fu.chiitoitsu': 'Seven pairs',
+  'fu.chiitoitsu.detail': 'Fixed value; no other fu applies',
+  'fu.kokushi': 'Thirteen orphans',
+  'fu.kokushi.detail': 'Scored as a yakuman; fu is not used',
+  'fu.pinfu-tsumo': 'Pinfu tsumo',
+  'fu.pinfu-tsumo.detail': 'Fixed at 20 \u2014 the self-draw bonus does not apply',
+  'fu.value-pair': 'Value pair',
+  'fu.meld.triplet.open.simple': 'Open triplet of simples',
+  'fu.meld.triplet.open.terminal-honor': 'Open triplet of terminals or honors',
+  'fu.meld.triplet.concealed.simple': 'Concealed triplet of simples',
+  'fu.meld.triplet.concealed.terminal-honor': 'Concealed triplet of terminals or honors',
+  'fu.meld.kan.open.simple': 'Open kan of simples',
+  'fu.meld.kan.open.terminal-honor': 'Open kan of terminals or honors',
+  'fu.meld.kan.concealed.simple': 'Concealed kan of simples',
+  'fu.meld.kan.concealed.terminal-honor': 'Concealed kan of terminals or honors',
+  'fu.source.dragon': 'dragon',
+  'fu.source.seat-wind': 'seat wind',
+  'fu.source.round-wind': 'round wind',
+
+  // ---- Limits ----
+  'limit.none': '',
+  'limit.mangan': 'Mangan',
+  'limit.haneman': 'Haneman',
+  'limit.baiman': 'Baiman',
+  'limit.sanbaiman': 'Sanbaiman',
+  'limit.yakuman': 'Yakuman',
+  'limit.kazoe': 'Counted Yakuman',
+
+  // ---- Invalid hands ----
+  'invalid.incomplete': 'These tiles do not form a complete hand.',
+  'invalid.no-yaku': 'This hand is complete but has no yaku, so it cannot be declared a win.',
+
+  // ---- Units ----
+  'unit.han': '{n} han',
+  'unit.fu': '{n} fu',
+  'unit.points': '{n} points',
+  'unit.tiles': '{n} tiles',
+  'unit.yakuman': 'Yakuman',
+  'unit.yakumanMultiple': 'Yakuman \u00d7{n}',
+  'payment.ron': '{n}',
+  'payment.tsumoDealer': '{n} all',
+  'payment.tsumoNonDealer': '{each}/{dealer}',
+
+  // ---- Breakdown ----
+  'breakdown.yaku': 'Yaku',
+  'breakdown.fu': 'Fu',
+  'breakdown.score': 'Score',
+  'breakdown.dora': 'Dora',
+  'breakdown.red': 'Red fives',
+  'breakdown.ura': 'Ura dora',
+  'breakdown.yakumanReplaces': 'A yakuman replaces all other yaku and dora.',
+  'breakdown.total': 'Total: {n}',
+  'breakdown.fuRounded': '{raw} fu, rounded up to {total}',
+  'breakdown.basePoints': 'Base points',
+  'breakdown.baseFormula': '{fu} fu \u00d7 2^(2 + {han} han)',
+  'breakdown.baseCapped': 'Capped at the limit below',
+  'breakdown.limitHand': 'Limit hand',
+  'breakdown.tsumoPayments': 'Tsumo payments',
+  'breakdown.ronPayment': 'Ron — paid by the discarder',
+  'breakdown.dealerHand': 'Dealer hand (\u00d76)',
+  'breakdown.nonDealerHand': 'Non-dealer hand (\u00d74)',
+  'breakdown.honba': 'Honba',
+  'breakdown.riichiSticks': 'Riichi sticks',
+  'breakdown.youCollect': 'You collect',
+
+  // ---- Quiz ----
+  'quiz.practice': 'Practice',
+  'quiz.progress': 'Question {n} of {total}',
+  'quiz.check': 'Check answer',
+  'quiz.next': 'Next question',
+  'quiz.seeResults': 'See results',
+  'quiz.correct': 'Correct',
+  'quiz.wrong': 'Not quite',
+  'quiz.tapTiles': 'Tap the tiles you want to choose.',
+  'quiz.yourAnswer': 'Your answer',
+  'quiz.seed': 'seed {n}',
+  'quiz.start': 'Start the quiz',
+  'quiz.startHint': 'Ten questions, then your score.',
+  'quiz.resultsTitle': 'Your score',
+  'quiz.resultsScore': '{correct} out of {total}',
+  'quiz.resultsPerfect': 'Perfect \u2014 every one right.',
+  'quiz.resultsStrong': 'Strong. Look over the ones you missed.',
+  'quiz.resultsKeepGoing': 'Keep going \u2014 review the explanations below.',
+  'quiz.retry': 'Try 10 more',
+  'quiz.reviewTitle': 'Review',
+  'quiz.reviewQuestion': 'Question {n}',
+  'quiz.bestScore': 'Best: {n}/10',
+
+  // ---- Home ----
+  'home.streak': '{n} day streak',
+  'home.bestStreak': 'Best: {n}',
+  'home.review': 'Worth reviewing: {list}',
+  'home.reset': 'Reset progress',
+  'home.read': 'Read',
+  'home.accuracy': 'Your accuracy',
+  'home.sandbox': 'Sandbox',
+  'home.sandboxBlurb': 'Score any hand you like and see the full breakdown.',
+  'home.credit':
+    'Tile artwork from FluffyStuff/riichi-mahjong-tiles, released into the public domain (CC0).',
+  'home.ruleset':
+    'Scoring follows the Tenhou / Riichi City standard: red fives on, open all-simples allowed, no rounded mangan, counted yakuman at 13 han.',
+  'home.privacy': 'Progress is stored in this browser only, and never leaves it.',
+
+  // ---- Modules ----
+  'module.tiles.title': 'Learning the Tiles',
+  'module.tiles.blurb': 'The 34 tiles, the two suits that matter, dora and red fives.',
+  'module.shapes.title': 'Forming Winning Hands',
+  'module.shapes.blurb': 'Four sets and a pair, open versus closed, and the five waits.',
+  'module.yaku.title': 'Learning Yaku',
+  'module.yaku.blurb': 'The patterns that make a hand claimable, with a full reference.',
+  'module.han.title': 'Counting Han',
+  'module.han.blurb': 'Totalling yaku and dora, and what opening a hand costs.',
+  'module.fu.title': 'Counting Fu',
+  'module.fu.blurb': 'Minor points, the triplet table, and the exceptions to memorize.',
+  'module.score.title': 'Counting Score',
+  'module.score.blurb': 'Han and fu into points, plus the limit hands.',
+  'module.efficiency.title': 'Tile Efficiency',
+  'module.efficiency.blurb': 'Shanten, acceptance, and which tile to throw.',
+
+  // ---- Yaku names ----
+  'yaku.kokushi': 'Thirteen Orphans',
+  'yaku.suuankou': 'Four Concealed Triplets',
+  'yaku.daisangen': 'Big Three Dragons',
+  'yaku.shousuushii': 'Little Four Winds',
+  'yaku.daisuushii': 'Big Four Winds',
+  'yaku.tsuuiisou': 'All Honors',
+  'yaku.chinroutou': 'All Terminals',
+  'yaku.ryuuiisou': 'All Green',
+  'yaku.chuuren': 'Nine Gates',
+  'yaku.suukantsu': 'Four Kans',
+  'yaku.tenhou': 'Heavenly Hand',
+  'yaku.chiihou': 'Hand of Earth',
+  'yaku.riichi': 'Riichi',
+  'yaku.double-riichi': 'Double Riichi',
+  'yaku.ippatsu': 'One-Shot',
+  'yaku.menzen-tsumo': 'Self-Draw',
+  'yaku.haitei': 'Last Tile Draw',
+  'yaku.houtei': 'Last Tile Discard',
+  'yaku.rinshan': 'After a Kan',
+  'yaku.chankan': 'Robbing a Kan',
+  'yaku.pinfu': 'All Runs',
+  'yaku.tanyao': 'All Simples',
+  'yaku.yakuhai-haku': 'White Dragon',
+  'yaku.yakuhai-hatsu': 'Green Dragon',
+  'yaku.yakuhai-chun': 'Red Dragon',
+  'yaku.yakuhai-seat': 'Seat Wind',
+  'yaku.yakuhai-round': 'Round Wind',
+  'yaku.iipeiko': 'Double Run',
+  'yaku.chiitoitsu': 'Seven Pairs',
+  'yaku.sanshoku': 'Three Colour Runs',
+  'yaku.ittsuu': 'Pure Straight',
+  'yaku.chanta': 'Terminal in Each Set',
+  'yaku.junchan': 'Terminal in Each Set (No Honors)',
+  'yaku.toitoi': 'All Triplets',
+  'yaku.sanankou': 'Three Concealed Triplets',
+  'yaku.sankantsu': 'Three Kans',
+  'yaku.sanshoku-doukou': 'Three Colour Triplets',
+  'yaku.shousangen': 'Little Three Dragons',
+  'yaku.honroutou': 'All Terminals and Honors',
+  'yaku.ryanpeikou': 'Two Double Runs',
+  'yaku.honitsu': 'Half Flush',
+  'yaku.chinitsu': 'Full Flush',
+
+  // ---- Drills ----
+  'drill.tiles.name.title': 'Name the tile',
+  'drill.tiles.name.desc': 'Read a tile at a glance.',
+  'drill.tiles.name.prompt': 'Which tile is this?',
+  'drill.tiles.name.explainHonor':
+    'This is the {name} ({notation}). Honor tiles have no numbers and form no runs.',
+  'drill.tiles.name.explainSuited':
+    'This is the {name} ({notation}). It belongs to the {suit} suit.',
+
+  'drill.tiles.terminals.title': 'Spot the terminals and honors',
+  'drill.tiles.terminals.desc': 'Tell the scoring classes apart.',
+  'drill.tiles.terminals.prompt': 'Select every terminal or honor tile.',
+  'drill.tiles.terminals.hint': 'Terminals are the 1s and 9s. Honors are the winds and dragons.',
+  'drill.tiles.terminals.explain': 'The terminals and honors here are {list}.',
+  'drill.tiles.terminals.why':
+    'This split matters constantly: tanyao needs none of them, chanta needs one in every set, and they score double the fu of a simple.',
+  'drill.tiles.terminals.none': 'none',
+
+  'drill.shapes.wait.title': 'Name the wait',
+  'drill.shapes.wait.desc': 'Read what a ready hand is waiting on.',
+  'drill.shapes.wait.prompt': 'This hand is ready. Which tile or tiles complete it?',
+  'drill.shapes.wait.explain': 'The hand waits on {notation} \u2014 {names}.',
+  'drill.shapes.wait.completed': 'Completed:',
+
+  'drill.shapes.shanten.title': 'How far from ready?',
+  'drill.shapes.shanten.desc': 'Count the tiles between a hand and tenpai.',
+  'drill.shapes.shanten.prompt': 'How many tiles away from a ready hand is this?',
+  'drill.shapes.shanten.hint': 'A ready (tenpai) hand is 0 away. Count the swaps still needed.',
+  'drill.shapes.shanten.ready': 'Ready now',
+  'drill.shapes.shanten.away': '{n} away',
+  'drill.shapes.shanten.explainReady':
+    'This hand is already ready. Every useful draw that replaces a dead tile brings that number down by one.',
+  'drill.shapes.shanten.explainAway':
+    'This hand is {n} away. Every useful draw that replaces a dead tile brings that number down by one.',
+
+  'drill.yaku.identify.title': 'Name the yaku',
+  'drill.yaku.identify.desc': 'Recognize what a hand is worth claiming.',
+  'drill.yaku.identify.prompt': 'Which yaku does this hand have? Select all that apply.',
+  'drill.yaku.identify.hint': 'Ignore riichi and self-draw \u2014 judge the tiles themselves.',
+
+  'drill.han.count.title': 'Count the han',
+  'drill.han.count.desc': 'Total a hand\u2019s yaku, remembering the open-hand penalty.',
+  'drill.han.count.prompt': 'How many han is this hand worth?',
+  'drill.han.count.hint':
+    'Include dora. Remember that opening the hand costs some yaku a han.',
+
+  'drill.fu.count.title': 'Count the fu',
+  'drill.fu.count.desc': 'Add up the minor points, then round.',
+  'drill.fu.count.prompt': 'How many fu is this hand worth?',
+  'drill.fu.count.hint': 'Start from 20 and round the total up to the next 10.',
+
+  'drill.score.total.title': 'What does it pay?',
+  'drill.score.total.desc': 'Turn han and fu into points.',
+  'drill.score.total.prompt': 'How many points does the winner collect?',
+  'drill.score.total.hint': '{han} han, {fu} fu.',
+
+  'drill.efficiency.discard.title': 'Choose the discard',
+  'drill.efficiency.discard.desc': 'Keep the tiles that accept the most.',
+  'drill.efficiency.discard.prompt': 'Which tile should you discard?',
+  'drill.efficiency.discard.hint':
+    'Pick the discard that leaves the most tiles able to improve the hand.',
+  'drill.efficiency.discard.explainReady':
+    'Discarding {name} leaves a hand that is ready, accepting {tiles} ({notation}).',
+  'drill.efficiency.discard.explainAway':
+    'Discarding {name} leaves a hand {n} away from ready, accepting {tiles} ({notation}).',
+  'drill.efficiency.discard.ranked': 'Every discard, ranked:',
+  'drill.efficiency.discard.rowReady': 'ready',
+  'drill.efficiency.discard.rowAway': '{n} away',
+
+  // ---- Context facts shown beside a drill hand ----
+  'fact.seat': '{wind} seat',
+  'fact.round': '{wind} round',
+  'fact.tsumo': 'Tsumo (Self-draw)',
+  'fact.ron': 'Ron (Won on a discard)',
+  'fact.closed': 'Closed hand',
+  'fact.open': 'Open hand',
+  'fact.dealer': 'Dealer',
+  'fact.nonDealer': 'Non-dealer',
+
+  // ---- Sandbox ----
+  'sandbox.title': 'Sandbox',
+  'sandbox.subtitle': 'Score any hand and see exactly where every han and fu came from.',
+  'sandbox.hand': 'Hand (14 tiles, including the winning tile)',
+  'sandbox.winTile': 'Winning tile',
+  'sandbox.dora': 'Dora indicators (optional)',
+  'sandbox.seatWind': 'Seat wind',
+  'sandbox.roundWind': 'Round wind',
+  'sandbox.tsumo': 'Tsumo (Self-draw)',
+  'sandbox.riichi': 'Riichi',
+  'sandbox.handSection': 'Hand',
+  'sandbox.preset.pinfu': 'Pinfu',
+  'sandbox.preset.chiitoi': 'Seven pairs',
+  'sandbox.preset.kokushi': 'Thirteen orphans',
+  'sandbox.preset.tanyao': 'All simples',
+  'sandbox.preset.chinitsu': 'Full flush',
+
+  // ---- Yaku page ----
+  'yakuPage.filterAll': 'All',
+  'yakuPage.filterClosed': 'Closed only',
+  'yakuPage.filterOpen': 'Works open',
+  'yakuPage.filterYakuman': 'Yakuman',
+  'yakuPage.closed': 'Closed',
+  'yakuPage.open': 'Open',
+  'yakuPage.group.han': '{n} Han',
+  'yakuPage.group.situational': 'Situational',
+  'yakuPage.group.yakuman': 'Yakuman',
+  'yakuPage.situationalNote':
+    'These depend on how and when you won rather than on the tiles themselves.',
+  'yakuPage.example': 'Example',
+  'yakuPage.notAvailable': '\u2014',
+
+  // ---- Lesson: Tiles ----
+  'lesson.tiles.subtitle': 'Thirty-four kinds of tile, four copies of each — 136 in all.',
+  'lesson.tiles.p1':
+    'Riichi uses three numbered suits and seven honor tiles. The numbered suits run 1 through 9 and can form runs; the honors cannot.',
+  'lesson.tiles.exMan': 'Characters (manzu) — written numerals',
+  'lesson.tiles.exPin': 'Circles (pinzu) — count the dots',
+  'lesson.tiles.exSou': 'Bamboo (souzu) — count the sticks; the 1 is a bird',
+  'lesson.tiles.exHonor': 'Honors — four winds, then three dragons',
+  'lesson.tiles.notation1': 'Written down, a hand uses digits followed by a suit letter:',
+  'lesson.tiles.notation2': 'is the 1, 2 and 3 of characters, and',
+  'lesson.tiles.notation3':
+    'is East. You will see this notation throughout the app, and you can type it into the sandbox.',
+  'lesson.tiles.h2Classes': 'Two classes that matter',
+  'lesson.tiles.classes1': 'Almost every scoring rule cares about one split:',
+  'lesson.tiles.classesSimples': 'simples',
+  'lesson.tiles.classes2': '(the 2 through 8 of any suit) versus',
+  'lesson.tiles.classesTerminals': 'terminals and honors',
+  'lesson.tiles.classes3':
+    '(the 1s, the 9s, and all seven honors). Terminals and honors are worth more in fu but are harder to form runs with, which is the trade-off the whole game turns on.',
+  'lesson.tiles.exTerminals': 'Terminals and honors',
+  'lesson.tiles.h2Dora': 'Dora and red fives',
+  'lesson.tiles.dora1': 'One tile is flipped at the start of a hand as the',
+  'lesson.tiles.doraIndicator': 'dora indicator',
+  'lesson.tiles.dora2': '. The dora is the',
+  'lesson.tiles.doraNext': 'next',
+  'lesson.tiles.dora3':
+    'tile in sequence — a 3-circle indicator makes the 4-circle dora, and a 9 wraps around to the 1. Each dora in your winning hand is worth an extra han, but dora are not a yaku: they add value to a hand that already has one.',
+  'lesson.tiles.red1': 'Most rulesets, including the one here, also replace one 5 in each suit with a',
+  'lesson.tiles.redFive': 'red five',
+  'lesson.tiles.red2': ', which is always worth a han.',
+  'lesson.tiles.exRed': 'Red fives',
+
+  // ---- Lesson: Shapes ----
+  'lesson.shapes.title': 'Forming a Winning Hand',
+  'lesson.shapes.subtitle': 'Four sets and a pair — and the shapes that get you there.',
+  'lesson.shapes.p1a': 'A winning hand is',
+  'lesson.shapes.p1b': 'four sets plus one pair',
+  'lesson.shapes.p1c': ': fourteen tiles in total. A set is either a',
+  'lesson.shapes.p1run': 'run',
+  'lesson.shapes.p1d': 'of three consecutive tiles in one suit, or a',
+  'lesson.shapes.p1triplet': 'triplet',
+  'lesson.shapes.p1e': 'of three identical tiles.',
+  'lesson.shapes.exComplete': 'A complete hand: three runs, one triplet, one pair',
+  'lesson.shapes.p2a': 'Runs never wrap and never cross suits —',
+  'lesson.shapes.p2b': 'is not a run, and neither is',
+  'lesson.shapes.p2c': '. Honors form triplets only.',
+  'lesson.shapes.h2Open': 'Open and closed',
+  'lesson.shapes.open1':
+    'You can claim a discarded tile to complete a set, but the set is then',
+  'lesson.shapes.openWord': 'open',
+  'lesson.shapes.open2':
+    '— laid on the table for everyone to see — and the hand loses access to every closed-only yaku, including riichi itself. Many yaku that survive also drop a han. Opening a hand makes it faster and cheaper; that is the central decision in riichi.',
+  'lesson.shapes.h2Waits': 'The five waits',
+  'lesson.shapes.waits1': 'When a hand is one tile from complete it is',
+  'lesson.shapes.waitsTenpai': 'tenpai',
+  'lesson.shapes.waits2': '(ready), and the tiles that complete it are its',
+  'lesson.shapes.waitsWait': 'wait',
+  'lesson.shapes.waits3':
+    '. Which shape you are waiting on affects both how likely you are to win and how much fu you score.',
+  'lesson.shapes.exRyanmen': 'Two-sided (ryanmen) — 34m waits on 2m and 5m. The best wait: eight tiles.',
+  'lesson.shapes.exKanchan': 'Closed (kanchan) — 13m waits only on 2m. Four tiles.',
+  'lesson.shapes.exPenchan': 'Edge (penchan) — 12m waits only on 3m, because there is no 0. Four tiles.',
+  'lesson.shapes.exShanpon': 'Dual triplet (shanpon) — two pairs, waiting to turn either into a triplet. Four tiles.',
+  'lesson.shapes.exTanki': 'Pair (tanki) — a lone tile waiting to become the pair. Three tiles.',
+  'lesson.shapes.h2Special': 'Two hands that break the rules',
+  'lesson.shapes.specialA': 'Seven Pairs',
+  'lesson.shapes.specialB': '(chiitoitsu) is seven different pairs rather than four sets and a pair.',
+  'lesson.shapes.specialC': 'Thirteen Orphans',
+  'lesson.shapes.specialD':
+    '(kokushi musou) is one of each terminal and honor, plus a second copy of any one of them. Both must be entirely closed.',
+  'lesson.shapes.exKokushi': 'Thirteen Orphans',
+
+  // ---- Lesson: Yaku ----
+  'lesson.yaku.subtitle': 'A hand without a yaku cannot win, no matter how it looks.',
+  'lesson.yaku.p1a': 'A',
+  'lesson.yaku.p1yaku': 'yaku',
+  'lesson.yaku.p1b':
+    'is a named pattern that makes a hand claimable. Four sets and a pair is not enough on its own: without at least one yaku you cannot declare a win, even holding the tile you need. This is the rule that surprises every new player.',
+  'lesson.yaku.p2a': 'Yaku are worth',
+  'lesson.yaku.p2han': 'han',
+  'lesson.yaku.p2b':
+    ', and han drive the score. Some yaku are only available to a fully closed hand — riichi, pinfu, seven pairs — while others survive opening the hand but lose a han for it. The reference below is the complete list this app scores, generated from the same rules the scorer uses.',
+  'lesson.yaku.p3':
+    'You do not need to memorize all of it. In practice a handful carry most of your hands: riichi, all simples, yakuhai (a triplet of dragons or of your seat or round wind), pinfu, and self-draw. Learn those five first and the rest will arrive on their own.',
+
+  // ---- Lesson: Han ----
+  'lesson.han.subtitle': 'Add up the yaku, then add the dora.',
+  'lesson.han.p1a': 'Han',
+  'lesson.han.p1b':
+    'are the doubles that set a hand’s value. Counting them is addition, and the whole difficulty is remembering what to include.',
+  'lesson.han.step1': 'Add the han of every yaku the hand has.',
+  'lesson.han.step2': 'Add one han for each dora, each ura dora, and each red five.',
+  'lesson.han.p2a': 'The order matters for one reason:',
+  'lesson.han.p2b': 'dora are not a yaku',
+  'lesson.han.p2c':
+    '. A hand with three dora and no yaku is worth nothing at all — you cannot declare it. Dora only multiply a hand that already has something to claim.',
+  'lesson.han.h2Open': 'The open-hand penalty',
+  'lesson.han.open':
+    'Opening a hand costs a han on most of the shape-based yaku. Three-colour runs is 2 han closed but 1 open; half flush is 3 closed and 2 open; full flush is 6 and 5. Others — pinfu, seven pairs, riichi, double run — vanish entirely.',
+  'lesson.han.exClosed': 'Closed: riichi (1) + all simples (1) + pinfu (1) + one dora = 4 han',
+  'lesson.han.exNote':
+    'The same tiles claimed from a discard would lose riichi and pinfu outright, leaving all simples and the dora — 2 han instead of 4, which is roughly a quarter of the points.',
+  'lesson.han.h2Stops': 'Where the count stops mattering',
+  'lesson.han.stops1': 'Below 5 han, the exact han and fu both matter. At 5 han the hand is a',
+  'lesson.han.stopsMangan': 'mangan',
+  'lesson.han.stops2':
+    'and fu stops mattering entirely — every 5-han hand pays the same. Above that the tiers step up: 6–7 han is a haneman, 8–10 a baiman, 11–12 a sanbaiman, and 13 or more a counted yakuman.',
+
+  // ---- Lesson: Fu ----
+  'lesson.fu.subtitle': 'The minor points — the part everyone finds fiddly.',
+  'lesson.fu.p1a': 'Fu',
+  'lesson.fu.p1b':
+    'are minor points that fine-tune a hand’s value below mangan. Every hand starts at 20 and earns more for the shapes it contains. When you are done, round the total up to the next multiple of 10.',
+  'lesson.fu.rowBase': 'Base — every hand',
+  'lesson.fu.rowMenzenRon': 'Menzen ron (closed hand, won on a discard)',
+  'lesson.fu.rowTsumo': 'Tsumo (Self-draw)',
+  'lesson.fu.rowTsumoDetail': 'Except on a pinfu hand',
+  'lesson.fu.rowWait': 'Closed, edge or pair wait',
+  'lesson.fu.rowWaitDetail': 'Not two-sided or dual-triplet',
+  'lesson.fu.rowPair': 'Pair of dragons, or of your seat or round wind',
+  'lesson.fu.h2Triplets': 'Triplets and kans',
+  'lesson.fu.triplets':
+    'Triplets are where most fu come from. The value doubles for being concealed, doubles again for terminals or honors, and quadruples for a kan.',
+  'lesson.fu.ronRule1': 'One rule catches everybody: a triplet completed by',
+  'lesson.fu.ronRuleBold': 'claiming a discard',
+  'lesson.fu.ronRule2':
+    'counts as open even though it sits in your closed hand, because the last tile came from someone else. Self-draw the same tile and it stays concealed — often a difference of 10 fu.',
+  'lesson.fu.h2Special': 'Three hands that ignore all of it',
+  'lesson.fu.specialA': 'Seven pairs',
+  'lesson.fu.specialB': 'is always exactly 25 fu, and never rounds.',
+  'lesson.fu.specialC': 'Pinfu self-draw',
+  'lesson.fu.specialD':
+    'is fixed at 20 — the +2 self-draw bonus does not apply, because earning no extra fu is the definition of pinfu.',
+  'lesson.fu.specialE': 'Pinfu on a discard',
+  'lesson.fu.specialF': 'is 30: base 20 plus the closed-hand bonus.',
+  'lesson.fu.exPinfu': 'Pinfu: all runs, a worthless pair, and a two-sided wait',
+  'lesson.fu.floor':
+    'And an open hand that happens to earn nothing at all is floored at 30 fu rather than 20, since it cannot claim pinfu to justify the lower number.',
+
+  // ---- Lesson: Score ----
+  'lesson.score.subtitle': 'Han and fu in, points out.',
+  'lesson.score.p1a': 'Once you have the han and the fu, the points follow from one formula. Compute the',
+  'lesson.score.p1base': 'base points',
+  'lesson.score.p2a': 'Then multiply: a non-dealer collects',
+  'lesson.score.p2x4': '4×',
+  'lesson.score.p2b': 'the base on a discard, a dealer',
+  'lesson.score.p2x6': '6×',
+  'lesson.score.p2c':
+    '. On a self-draw the payment is split — each opponent pays 1× the base to a non-dealer winner, except the dealer, who pays 2×. Every individual payment rounds',
+  'lesson.score.p2up': 'up',
+  'lesson.score.p2d': 'to the next 100.',
+  'lesson.score.p3a': 'If the base reaches 2000, the hand is a',
+  'lesson.score.p3mangan': 'mangan',
+  'lesson.score.p3b':
+    'and stops there. That is why counting fu becomes pointless at 5 han: the formula has already been capped.',
+  'lesson.score.h2Limits': 'The limits',
+  'lesson.score.limits':
+    'Above mangan the value steps in named tiers rather than continuing the formula: haneman at 6–7 han (1.5× mangan), baiman at 8–10 (2×), sanbaiman at 11–12 (3×), and a counted yakuman at 13 or more (4×). A true yakuman — thirteen orphans, four concealed triplets — pays 32000 to a non-dealer and 48000 to a dealer.',
+  'lesson.score.tableNonDealerRon': 'Non-dealer, ron',
+  'lesson.score.tableNonDealerTsumo': 'Non-dealer, tsumo',
+  'lesson.score.tableNonDealerTsumoNote': 'Shown as "each non-dealer / the dealer".',
+  'lesson.score.tableDealerRon': 'Dealer, ron',
+  'lesson.score.tableDealerTsumo': 'Dealer, tsumo',
+  'lesson.score.tableDealerTsumoNote': 'Every opponent pays the same.',
+  'lesson.score.tableHan': 'Han',
+  'lesson.score.tableFu': '{n} fu',
+  'lesson.score.tableManganRow': '{payment} — mangan, fu no longer matters',
+  'lesson.score.closing':
+    'Most players learn the common cells by heart rather than doing the arithmetic: 1000, 2000, 3900, 7700 for a non-dealer; 1500, 2900, 5800, 11600 for a dealer. Those cover the majority of hands you will actually score.',
+
+  // ---- Lesson: Efficiency ----
+  'lesson.efficiency.subtitle': 'Which tile to throw — the decision you make every single turn.',
+  'lesson.efficiency.p1':
+    'Every turn you draw a tile and discard one. Choosing well is the single largest source of skill in riichi, and it rests on two numbers.',
+  'lesson.efficiency.p2a': 'Shanten',
+  'lesson.efficiency.p2b':
+    'is how many tiles you are from ready. A hand at 0 shanten is tenpai; at 1 you need one more useful tile to get there. Lowering shanten is almost always worth more than any other consideration.',
+  'lesson.efficiency.p3a': 'Ukeire',
+  'lesson.efficiency.p3b':
+    ', or acceptance, is how many tiles would lower your shanten if you drew them. Two discards can leave you equally far from ready while accepting wildly different numbers of tiles, and that gap is where games are won.',
+  'lesson.efficiency.h2Ryanmen': 'Why two-sided shapes win',
+  'lesson.efficiency.ryanmen':
+    'A 34m accepts both 2m and 5m — eight tiles. A 13m accepts only the 2m — four tiles. Identical in size, double the chance. This is why players break up closed and edge shapes early and keep the two-sided ones.',
+  'lesson.efficiency.exEight': 'Eight tiles complete this',
+  'lesson.efficiency.exFour': 'Four tiles complete this',
+  'lesson.efficiency.h2Order': 'A rough order of operations',
+  'lesson.efficiency.order1': 'Discard tiles that are isolated — no neighbours, no pair.',
+  'lesson.efficiency.order2': 'Prefer terminals over middle tiles when discarding; they form fewer runs.',
+  'lesson.efficiency.order3': 'With five blocks and only four needed, drop the weakest block entirely.',
+  'lesson.efficiency.order4': 'Between two equal shapes, keep the one that accepts more tiles.',
+  'lesson.efficiency.closing':
+    'The quiz below ranks every discard by acceptance, so you can see exactly what each choice costs. Efficiency is not the whole game — safety and hand value matter too — but it is the foundation everything else sits on.',
+} satisfies Messages
