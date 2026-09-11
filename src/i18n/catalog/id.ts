@@ -330,6 +330,7 @@ export const messages = {
   'drill.efficiency.discard.rowAway': '{n} lagi',
   // ---- The context strip above a drill hand ----
   'context.dora': 'Dora',
+  'context.doraWithUra': 'Dora / Ura',
   'context.seatWind': 'Angin Tempat',
   'context.roundWind': 'Angin Babak',
   'context.tsumo': 'Tsumo',

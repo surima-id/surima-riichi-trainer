@@ -41,12 +41,14 @@ export const WINDS = [EAST, SOUTH, WEST, NORTH] as const
 /**
  * The winds a round can be.
  *
- * A hanchan runs East then South; a longer game reaches West. North is a seat
- * but never a round, so generating a "North round" poses a situation that does
- * not occur — and North as the round wind would make a North triplet yakuhai,
- * which is not a thing players ever have to judge.
+ * A hanchan runs East then South and stops, which is the game nearly everyone
+ * plays. West exists only in the rare sudden-death extension, and North is a
+ * seat but never a round at all: either as the round wind would make a triplet
+ * of that wind yakuhai, which is a judgement a player will practically never
+ * face. Restricting the drills to East and South keeps every question one that
+ * can actually come up at the table.
  */
-export const ROUND_WINDS = [EAST, SOUTH, WEST] as const
+export const ROUND_WINDS = [EAST, SOUTH] as const
 export const DRAGONS = [HAKU, HATSU, CHUN] as const
 
 export type Wind = (typeof WINDS)[number]

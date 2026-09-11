@@ -26,13 +26,31 @@ describe('buildRandomHand', () => {
     }
   })
 
-  it('never uses more than four copies of a tile', () => {
+  /**
+   * Three, not the legal four: a fourth copy splits across a triplet and a run
+   * and gives the hand several readings, which is more than a drill should ask
+   * of a beginner.
+   */
+  it('never uses more than three copies of a tile', () => {
     for (let seed = 0; seed < 200; seed++) {
       const built = buildRandomHand(makeRng(seed))
       if (!built) continue
       const all = [...built.hand.concealed, ...built.hand.calls.flatMap((c) => c.tiles)]
-      expect(Math.max(...toCounts(all))).toBeLessThanOrEqual(4)
+      expect(Math.max(...toCounts(all))).toBeLessThanOrEqual(3)
     }
+  })
+
+  it('allows the fourth copy when a caller asks for it', () => {
+    let sawQuad = false
+    for (let seed = 0; seed < 200 && !sawQuad; seed++) {
+      const built = buildRandomHand(makeRng(seed), { maxCopies: 4 })
+      if (!built) continue
+      const all = [...built.hand.concealed, ...built.hand.calls.flatMap((c) => c.tiles)]
+      const max = Math.max(...toCounts(all))
+      expect(max).toBeLessThanOrEqual(4)
+      if (max === 4) sawQuad = true
+    }
+    expect(sawQuad, 'maxCopies: 4 never actually dealt a fourth copy').toBe(true)
   })
 
   it('honours a tile filter', () => {

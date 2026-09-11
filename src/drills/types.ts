@@ -53,6 +53,14 @@ export interface Question {
   context?: {
     /** The flipped indicators, not the dora themselves: reading one is the work. */
     doraIndicators?: Tile[]
+    /**
+     * The ura indicators, flipped only when the hand declared riichi.
+     *
+     * Kept separate from `doraIndicators` rather than appended to them, because
+     * the two are read the same way but earned differently: the player has to
+     * see that the bottom row is theirs only because they declared.
+     */
+    uraIndicators?: Tile[]
     seatWind?: Tile
     roundWind?: Tile
     tsumo?: boolean

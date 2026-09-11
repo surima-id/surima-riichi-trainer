@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { ALL_GENERATORS } from '../generators'
 import { type Question } from '../types'
 import { LANGS, createTranslator } from '../../i18n'
-import { NORTH, face } from '../../engine/tiles'
+import { EAST, SOUTH, face } from '../../engine/tiles'
 
 /**
  * Generators run in the browser, but they are pure functions of `(seed, t)`, so
@@ -92,11 +92,13 @@ describe.each(ALL_GENERATORS.map((g) => [g.id, g] as const))('%s', (_id, generat
   })
 
   /**
-   * Only four copies of each tile exist, so a hand holding five is not a hand.
-   * This is asserted for every generator rather than just the efficiency drill,
-   * because any generator that builds tiles by random replacement can hit it.
+   * A fourth copy of a tile is legal but is the hardest shape a beginner meets:
+   * it splits across a triplet and a run, leaving the hand with several
+   * readings that score differently. Drills teach the ordinary case, so no
+   * question poses one — which also rules out the five-copy hand that cannot
+   * exist at all.
    */
-  it('never deals more copies of a tile than exist', () => {
+  it('never deals four copies of a tile', () => {
     const t = createTranslator('en')
     for (const seed of SEEDS) {
       const q = generator.generate(seed, t)
@@ -105,8 +107,27 @@ describe.each(ALL_GENERATORS.map((g) => [g.id, g] as const))('%s', (_id, generat
       for (const call of q.calls ?? []) {
         for (const tile of call.tiles) counts.set(face(tile), (counts.get(face(tile)) ?? 0) + 1)
       }
-      const over = [...counts.entries()].filter(([, n]) => n > 4)
+      const over = [...counts.entries()].filter(([, n]) => n > 3)
       expect(over, `seed ${seed} deals ${over.map(([f, n]) => `${n}x face ${f}`).join(', ')}`).toEqual([])
+    }
+  })
+
+  /**
+   * Riichi buys the bottom row of the dead wall, and those ura dora count. A
+   * question that declares riichi without flipping an ura is scoring the hand
+   * short of what it pays; one that flips an ura without a riichi is showing
+   * the player tiles nobody at the table would have turned over.
+   */
+  it('flips an ura indicator exactly when the hand declared riichi', () => {
+    const t = createTranslator('en')
+    const riichiLabels = [t.t('context.riichi'), t.t('yaku.double-riichi')]
+    for (const seed of SEEDS) {
+      const q = generator.generate(seed, t)
+      const context = q.context
+      if (!context) continue
+      const declared = (context.flags ?? []).some((flag) => riichiLabels.includes(flag))
+      const ura = (context.uraIndicators ?? []).length
+      expect(ura > 0, `seed ${seed}: riichi=${declared} but ${ura} ura indicator(s)`).toBe(declared)
     }
   })
 
@@ -132,17 +153,17 @@ describe.each(ALL_GENERATORS.map((g) => [g.id, g] as const))('%s', (_id, generat
   })
 
   /**
-   * North is a seat but never a round. A "North round" would make a North
-   * triplet yakuhai, which is a judgement no player ever has to make.
+   * A hanchan runs East then South and stops. West is the rare sudden-death
+   * extension and North is never a round at all, so posing either asks the
+   * player to judge a wind yakuhai in a round they will not sit in.
    */
-  it('never poses a North round', () => {
+  it('only poses an East or South round', () => {
     const t = createTranslator('en')
-    const north = createTranslator('en').tile(NORTH)
     for (const seed of SEEDS) {
       const q = generator.generate(seed, t)
       const round = q.context?.roundWind
       if (round === undefined) continue
-      expect(t.tile(round), `seed ${seed} used ${north} as the round wind`).not.toBe(north)
+      expect([EAST, SOUTH], `seed ${seed} used ${t.tile(round)} as the round wind`).toContain(round)
     }
   })
 

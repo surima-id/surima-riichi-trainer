@@ -363,6 +363,7 @@ export const messages = {
 
   // ---- The context strip above a drill hand ----
   'context.dora': 'Dora',
+  'context.doraWithUra': 'Dora / Ura',
   'context.seatWind': 'Seat Wind',
   'context.roundWind': 'Prevailing Wind',
   'context.tsumo': 'Tsumo',

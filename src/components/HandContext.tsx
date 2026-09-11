@@ -18,6 +18,30 @@ import { Tile } from './Tile'
 /** Indicator slots always shown, so the strip does not change width. */
 const DORA_SLOTS = 5
 
+/**
+ * One row of the indicator block: the flipped tiles, then the empty slots.
+ *
+ * A real table shows five slots per row and turns them over one per kan, so the
+ * empty ones are information: they say how many kans have been called.
+ */
+function IndicatorRow({ tiles }: { tiles: TileValue[] }) {
+  return (
+    <span className="flex items-end gap-0.5">
+      {tiles.map((tile, i) => (
+        <Tile key={i} tile={tile} size="xs" />
+      ))}
+      {Array.from({ length: Math.max(0, DORA_SLOTS - tiles.length) }, (_, i) => (
+        <span
+          key={`slot-${i}`}
+          aria-hidden="true"
+          className="w-[clamp(2.25rem,2.03rem+0.87vw,2.75rem)] rounded-[8%] bg-black/[0.07] dark:bg-white/10"
+          style={{ aspectRatio: '3 / 4' }}
+        />
+      ))}
+    </span>
+  )
+}
+
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <span className="flex items-center gap-2">
@@ -34,6 +58,8 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 
 export interface HandContextProps {
   doraIndicators?: TileValue[]
+  /** Shown only for a riichi hand, as the second row of the dead wall. */
+  uraIndicators?: TileValue[]
   seatWind?: TileValue
   roundWind?: TileValue
   tsumo?: boolean
@@ -43,6 +69,7 @@ export interface HandContextProps {
 
 export function HandContext({
   doraIndicators = [],
+  uraIndicators = [],
   seatWind,
   roundWind,
   tsumo,
@@ -53,22 +80,12 @@ export function HandContext({
   return (
     <div className="mb-1 flex flex-wrap items-center gap-x-4 gap-y-2 rounded-t-xl border border-black/5 bg-black/[0.04] px-3 py-2 dark:border-white/10 dark:bg-white/[0.06]">
       {doraIndicators.length > 0 && (
-        <Field label={t.t('context.dora')}>
-          <span className="flex items-end gap-0.5 rounded-md bg-sky-500/10 p-1">
-            {doraIndicators.map((tile, i) => (
-              <Tile key={i} tile={tile} size="xs" />
-            ))}
-            {/* The unflipped indicators. A real table shows five slots and turns
-                them over one per kan, so the empty ones are information: they
-                say how many kans have been called. */}
-            {Array.from({ length: Math.max(0, DORA_SLOTS - doraIndicators.length) }, (_, i) => (
-              <span
-                key={`slot-${i}`}
-                aria-hidden="true"
-                className="w-[clamp(2.25rem,2.03rem+0.87vw,2.75rem)] rounded-[8%] bg-black/[0.07] dark:bg-white/10"
-                style={{ aspectRatio: '3 / 4' }}
-              />
-            ))}
+        <Field label={t.t(uraIndicators.length > 0 ? 'context.doraWithUra' : 'context.dora')}>
+          {/* Dora above, ura below — the dead wall's own stacking, so the row a
+              player reads second is the row a riichi earned them. */}
+          <span className="flex flex-col gap-0.5 rounded-md bg-sky-500/10 p-1">
+            <IndicatorRow tiles={doraIndicators} />
+            {uraIndicators.length > 0 && <IndicatorRow tiles={uraIndicators} />}
           </span>
         </Field>
       )}

@@ -27,18 +27,28 @@ for (let suit = 0; suit < 3; suit++) {
 
 const ALL_FACES = Array.from({ length: 34 }, (_, i) => i)
 
-/** Tracks how many copies of each tile are still available while building. */
+/**
+ * Tracks how many copies of each tile are still available while building.
+ *
+ * `limit` is four by default — the real supply — but drills build with three.
+ * See `BuildOptions.maxCopies` for why.
+ */
 export class TileSupply {
   private used = new Array(34).fill(0)
+  private readonly limit: number
+
+  constructor(limit = 4) {
+    this.limit = limit
+  }
 
   take(faceIndex: number, count: number): boolean {
-    if (this.used[faceIndex] + count > 4) return false
+    if (!this.canTake(faceIndex, count)) return false
     this.used[faceIndex] += count
     return true
   }
 
   canTake(faceIndex: number, count: number): boolean {
-    return this.used[faceIndex] + count <= 4
+    return this.used[faceIndex] + count <= this.limit
   }
 
   release(faceIndex: number, count: number): void {
@@ -59,19 +69,30 @@ interface BuildOptions {
   triplets?: number
   /** Melds to expose as calls, taken from the generated melds. */
   openMelds?: number
+  /**
+   * The most copies of any one tile a hand may hold. Three by default.
+   *
+   * Four copies of a tile is legal but is the hardest shape a beginner meets:
+   * the fourth tile splits across a triplet and a run (`1112223m` holding four
+   * 2m), and the hand has several readings that score differently. Drills are
+   * for teaching the ordinary case, so they build from three copies and leave
+   * the four-copy puzzle out of the question pool entirely. Raise it to four
+   * for a hand that is deliberately about that shape.
+   */
+  maxCopies?: number
   context?: Partial<WinContext>
 }
 
 /**
  * Builds a random complete hand: four melds plus a pair, respecting the
- * four-copies-per-tile limit.
+ * per-tile copy limit (`maxCopies`, three by default).
  *
  * Returns null when the constraints cannot be satisfied, which the callers
  * handle by retrying with a fresh seed rather than by loosening the rules.
  */
 export function buildRandomHand(rng: Rng, options: BuildOptions = {}): BuiltHand | null {
-  const { tileFilter = () => true, triplets = -1, openMelds = 0 } = options
-  const supply = new TileSupply()
+  const { tileFilter = () => true, triplets = -1, openMelds = 0, maxCopies = 3 } = options
+  const supply = new TileSupply(maxCopies)
 
   const tripletCount = triplets >= 0 ? triplets : rng.int(3)
   const meldTiles: Tile[][] = []

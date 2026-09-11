@@ -92,6 +92,9 @@ function handContext(built: ReturnType<typeof buildScoringHand>, t: Translator) 
 
   return {
     doraIndicators: context.doraIndicators,
+    // Only meaningful under a riichi, and `randomContext` only deals one then,
+    // so an empty array here is the ordinary case rather than a missing field.
+    uraIndicators: context.uraIndicators,
     seatWind: context.seatWind,
     roundWind: context.roundWind,
     tsumo: context.tsumo,
@@ -106,11 +109,6 @@ function faceCounts(tiles: Tile[]): Map<number, number> {
   return counts
 }
 
-/** True when some tile appears at least `n` times. */
-function hasAtLeast(tiles: Tile[], n: number): boolean {
-  return [...faceCounts(tiles).values()].some((count) => count >= n)
-}
-
 /**
  * Swaps `count` tiles of a hand for random ones, respecting the tile supply.
  *
@@ -121,10 +119,11 @@ function hasAtLeast(tiles: Tile[], n: number): boolean {
  * in. The replacement pool is therefore restricted to faces that still have
  * room.
  *
- * `maxCopies` lowers that ceiling below the usual four, which the efficiency
- * drill uses to keep quads out of hands entirely.
+ * The ceiling is three rather than the legal four, matching what
+ * `buildRandomHand` deals: a fourth copy is the hardest shape a beginner meets
+ * and drills leave it out. `maxCopies` can raise or lower that.
  */
-function replaceTiles(rng: Rng, tiles: Tile[], count: number, maxCopies = 4): Tile[] {
+function replaceTiles(rng: Rng, tiles: Tile[], count: number, maxCopies = 3): Tile[] {
   const out = [...tiles]
   const copies = faceCounts(out)
 
@@ -151,16 +150,24 @@ function replaceTiles(rng: Rng, tiles: Tile[], count: number, maxCopies = 4): Ti
  * One dora indicator is always flipped, as it is in a real hand. Whether it
  * points at anything the hand holds is left to chance — reading the indicator
  * and finding nothing is as much a part of counting as finding two.
+ *
+ * An ura indicator is flipped only alongside a riichi, which is when a real
+ * table turns one over, and is the reason the ura slot exists at all: riichi
+ * buys the bottom row. A hand that declared riichi and was then scored without
+ * its ura was being scored short, so the ura is dealt here and stated in the
+ * question rather than left for the breakdown to reveal after the fact.
  */
 function randomContext(rng: Rng, menzen: boolean) {
   const seat = rng.pick(WINDS)
+  const riichi = menzen && rng.next() < 0.4
   return {
     seatWind: seat,
     roundWind: rng.pick(ROUND_WINDS),
     tsumo: rng.next() < 0.45,
     menzen,
-    riichi: menzen && rng.next() < 0.4,
+    riichi,
     doraIndicators: [rng.pick(ALL_FACES)],
+    uraIndicators: riichi ? [rng.pick(ALL_FACES)] : [],
   }
 }
 
@@ -650,18 +657,11 @@ const efficiencyDrill: Generator = {
       const built = buildScoringHand(makeRng(seed + attempt * 7907), { openMelds: 0 })
       if (!built) continue
 
-      /**
-       * Perturb a complete hand into a realistic 14-tile decision.
-       *
-       * Capped at three copies rather than four: a quad is a kan decision, not
-       * a discard one, and this drill is about which tile to throw from an
-       * ordinary hand.
-       */
-      const perturbed = replaceTiles(rng, built.hand.concealed, 2 + rng.int(2), 3)
+      // Perturb a complete hand into a realistic 14-tile decision. The builder
+      // and the swap both cap a face at three copies, so no quad can appear:
+      // that is a kan decision, not a discard one.
+      const perturbed = replaceTiles(rng, built.hand.concealed, 2 + rng.int(2))
       if (perturbed.length !== 14) continue
-      // The built hand may already have held a quad, which replacement cannot
-      // undo.
-      if (hasAtLeast(perturbed, 4)) continue
 
       /**
        * Sorted here rather than by `Hand`, because `correctIndices` below index
