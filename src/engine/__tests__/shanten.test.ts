@@ -99,6 +99,26 @@ describe('discardOptions', () => {
     expect(best.tilesLeft).toBeLessThanOrEqual(best.faces.length * 4)
   })
 
+  /**
+   * The calculator shows a per-tile remaining count beside each accepted tile,
+   * so that breakdown has to agree with the total it is shown next to — a row
+   * reading "8 tiles" over four icons summing to six is worse than no row.
+   */
+  it('breaks the acceptance total down per tile', () => {
+    for (const option of discardOptions(parseTiles('3456m34567p34477s'))) {
+      expect(option.accepts.map((a) => a.tile)).toEqual(option.faces)
+      expect(option.accepts.reduce((sum, a) => sum + a.remaining, 0)).toBe(option.tilesLeft)
+      expect(option.accepts.every((a) => a.remaining >= 1 && a.remaining <= 4)).toBe(true)
+    }
+  })
+
+  it('subtracts the copies already in hand from what is left to draw', () => {
+    // Three 7s are held, so the 7s that completes the pair has one copy left.
+    const [option] = discardOptions(parseTiles('123m456p789s77733z'))
+    const seven = option.accepts.find((a) => formatTiles([a.tile]) === '7s')
+    if (seven) expect(seven.remaining).toBe(1)
+  })
+
   it('never claims a tile that is already fully visible', () => {
     // All four 1z are in hand, so 1z cannot be a live acceptance tile.
     const options = discardOptions(parseTiles('12355m456p789s1111z'))

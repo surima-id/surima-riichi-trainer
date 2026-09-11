@@ -6,7 +6,7 @@
  * key. That way a generator can never disagree with the scorer.
  */
 
-import { type Call, type Hand } from '../engine/parse'
+import { type Call, type Hand, isMenzen } from '../engine/parse'
 import {
   DRAGONS,
   HONOR_START,
@@ -41,14 +41,19 @@ export class TileSupply {
     this.limit = limit
   }
 
-  take(faceIndex: number, count: number): boolean {
-    if (!this.canTake(faceIndex, count)) return false
+  /**
+   * `limit` overrides this supply's usual ceiling for one take, never rising
+   * above the four copies that physically exist. A kan is the reason: it needs
+   * a fourth copy of its face in a hand that is otherwise capped at three.
+   */
+  take(faceIndex: number, count: number, limit = this.limit): boolean {
+    if (!this.canTake(faceIndex, count, limit)) return false
     this.used[faceIndex] += count
     return true
   }
 
-  canTake(faceIndex: number, count: number): boolean {
-    return this.used[faceIndex] + count <= this.limit
+  canTake(faceIndex: number, count: number, limit = this.limit): boolean {
+    return this.used[faceIndex] + count <= Math.min(limit, 4)
   }
 
   release(faceIndex: number, count: number): void {
@@ -69,6 +74,20 @@ interface BuildOptions {
   triplets?: number
   /** Melds to expose as calls, taken from the generated melds. */
   openMelds?: number
+  /**
+   * Melds to declare as kans rather than triplets.
+   *
+   * A kan is four copies of a tile standing where a meld would, and it is the
+   * one shape whose fu a player cannot work out from the triplet rules alone:
+   * it quadruples rather than doubles, so a concealed kan of terminals is 32 fu
+   * where the triplet is 8. The fu drill asks for hands with one so that number
+   * actually gets practised.
+   *
+   * Whether each kan is closed or open follows `openMelds`, which is also what
+   * the rules do: an open kan is a call off another player's discard, a closed
+   * one is declared from the hand and leaves it closed.
+   */
+  kans?: number
   /**
    * The most copies of any one tile a hand may hold. Three by default.
    *
@@ -91,12 +110,14 @@ interface BuildOptions {
  * handle by retrying with a fresh seed rather than by loosening the rules.
  */
 export function buildRandomHand(rng: Rng, options: BuildOptions = {}): BuiltHand | null {
-  const { tileFilter = () => true, triplets = -1, openMelds = 0, maxCopies = 3 } = options
+  const { tileFilter = () => true, triplets = -1, openMelds = 0, kans = 0, maxCopies = 3 } = options
   const supply = new TileSupply(maxCopies)
 
-  const tripletCount = triplets >= 0 ? triplets : rng.int(3)
+  // Kans are triplets with a fourth tile, so they come out of the triplet
+  // budget; asking for more kans than triplets simply raises that budget.
+  const tripletCount = Math.max(triplets >= 0 ? triplets : rng.int(3), kans)
   const meldTiles: Tile[][] = []
-  const meldKinds: ('run' | 'triplet')[] = []
+  const meldKinds: ('run' | 'triplet' | 'kan')[] = []
 
   const runStarts = RUN_STARTS.filter((start) =>
     [start, start + 1, start + 2].every(tileFilter),
@@ -105,10 +126,20 @@ export function buildRandomHand(rng: Rng, options: BuildOptions = {}): BuiltHand
 
   for (let i = 0; i < 4; i++) {
     const wantTriplet = i < tripletCount
+    // Kans are placed first so they land in the slots `openMelds` exposes,
+    // which is what lets a caller ask for an open kan rather than a closed one.
+    const wantKan = i < kans
     let placed = false
 
     for (let attempt = 0; attempt < 40 && !placed; attempt++) {
-      if (wantTriplet) {
+      if (wantKan) {
+        // A kan needs all four copies, so it overrides the usual three-copy cap
+        // — that fourth tile is the whole point of the shape.
+        const f = rng.pick(tripletFaces)
+        if (!supply.take(f, 4, 4)) continue
+        meldTiles.push([f, f, f, f])
+        meldKinds.push('kan')
+      } else if (wantTriplet) {
         const f = rng.pick(tripletFaces)
         if (!supply.canTake(f, 3)) continue
         supply.take(f, 3)
@@ -138,25 +169,35 @@ export function buildRandomHand(rng: Rng, options: BuildOptions = {}): BuiltHand
   }
   if (pairFace < 0) return null
 
-  // Expose the requested number of melds as calls. Runs become chi, triplets pon.
+  /**
+   * Expose melds as calls. Runs become chi and triplets pon, while a kan is
+   * always a call whether or not it is open: four tiles cannot sit in the
+   * thirteen-tile concealed portion, so even a closed kan is declared on the
+   * table as an `ankan` and the hand stays closed around it.
+   */
   const calls: Call[] = []
-  for (let i = 0; i < openMelds && i < 4; i++) {
+  for (let i = 0; i < 4; i++) {
+    const kind = meldKinds[i]
+    const open = i < openMelds
+    if (kind !== 'kan' && !open) continue
     const tiles = meldTiles[i]
     calls.push({
-      kind: meldKinds[i] === 'run' ? 'chi' : 'pon',
+      kind: kind === 'kan' ? (open ? 'minkan' : 'ankan') : kind === 'run' ? 'chi' : 'pon',
       tile: tiles[0],
       tiles,
     })
   }
 
-  const concealedMelds = meldTiles.slice(openMelds)
+  const concealedMelds = meldTiles.filter((_, i) => meldKinds[i] !== 'kan' && i >= openMelds)
   const concealed: Tile[] = [...concealedMelds.flat(), pairFace, pairFace]
 
   // The winning tile has to come from the concealed portion, or the hand would
   // have been complete before the win.
   const winTile = concealed[rng.int(concealed.length)]
 
-  const context = defaultContext({ menzen: calls.length === 0, ...options.context })
+  // Derived rather than assumed: a closed kan is a call but leaves the hand
+  // closed, so counting calls would wrongly strip a riichi hand of menzen.
+  const context = defaultContext({ menzen: isMenzen(calls), ...options.context })
   return {
     hand: { concealed, calls, winTile },
     context,

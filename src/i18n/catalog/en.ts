@@ -300,28 +300,30 @@ export const messages = {
     'This split matters constantly: tanyao needs none of them, chanta needs one in every set, and they score double the fu of a simple.',
   'drill.tiles.terminals.none': 'none',
 
+  'drill.tiles.simples.prompt': 'Select every simple tile.',
+  'drill.tiles.simples.hint': 'Simples are the 2 through 8 of each suit — everything that is not a terminal or an honor.',
+  'drill.tiles.simples.explain': 'The simples here are {list}.',
   'drill.shapes.wait.title': 'Name the wait',
   'drill.shapes.wait.desc': 'Read what a ready hand is waiting on.',
-  'drill.shapes.wait.prompt': 'This hand is ready. Which tile or tiles complete it?',
+  'drill.shapes.wait.promptOne': 'This hand is ready. Which tile completes it?',
+  'drill.shapes.wait.promptMany': 'This hand is ready. Which set of tiles completes it?',
   'drill.shapes.wait.explain': 'The hand waits on {notation} \u2014 {names}.',
+  'drill.shapes.wait.explainMany':
+    'The hand waits on {notation} — {names}. A wait this wide is worth far more than a single-tile wait: every extra tile it accepts is one more route to a finished hand.',
   'drill.shapes.wait.completed': 'Completed:',
 
-  'drill.shapes.shanten.title': 'How far from ready?',
-  'drill.shapes.shanten.desc': 'Count the tiles between a hand and tenpai.',
-  'drill.shapes.shanten.prompt': 'How many tiles away from a ready hand is this?',
-  'drill.shapes.shanten.hint': 'A ready (tenpai) hand is 0 away. Count the swaps still needed.',
-  'drill.shapes.shanten.ready': 'Ready now',
-  'drill.shapes.shanten.away': '{n} away',
-  'drill.shapes.shanten.explainReady':
-    'This hand is already ready. Every useful draw that replaces a dead tile brings that number down by one.',
-  'drill.shapes.shanten.explainAway':
-    'This hand is {n} away. Every useful draw that replaces a dead tile brings that number down by one.',
 
   'drill.yaku.identify.title': 'Name the yaku',
   'drill.yaku.identify.desc': 'Recognize what a hand is worth claiming.',
   'drill.yaku.identify.prompt': 'Which yaku does this hand have? Select all that apply.',
-  'drill.yaku.identify.hint': 'Ignore riichi and self-draw \u2014 judge the tiles themselves.',
+  'drill.yaku.identify.hint': 'Judge the tiles themselves. The winds above matter only for a wind triplet.',
 
+  'drill.yaku.complete.title': 'Complete the yaku',
+  'drill.yaku.complete.desc': 'Find the tile that finishes a named pattern.',
+  'drill.yaku.complete.prompt': 'This hand is one tile from {yaku}. Which tile completes it?',
+  'drill.yaku.complete.hint':
+    'Find the shape that is still unfinished, then check the tile that finishes it does not break the pattern.',
+  'drill.yaku.complete.explain': '{tile} completes the hand as {yaku}.',
   'drill.han.count.title': 'Count the han',
   'drill.han.count.desc': 'Total a hand\u2019s yaku, remembering the open-hand penalty.',
   'drill.han.count.prompt': 'How many han is this hand worth?',
@@ -333,6 +335,11 @@ export const messages = {
   'drill.fu.count.prompt': 'How many fu is this hand worth?',
   'drill.fu.count.hint': 'Start from 20 and round the total up to the next 10.',
 
+  'drill.score.pick.title': 'How much is it worth?',
+  'drill.score.pick.desc': 'Recognise the total a hand collects.',
+  'drill.score.pick.prompt': 'How many points can you score with this hand?',
+  'drill.score.pick.hintRon': 'Ron — the discarder pays the whole amount. Count han and fu, then find the row.',
+  'drill.score.pick.hintTsumo': 'Tsumo — add up what all three opponents pay between them.',
   'drill.score.total.title': 'What does it pay?',
   'drill.score.total.desc': 'Turn han and fu into points.',
   'drill.score.total.prompt': 'How many points is this hand worth?',
@@ -344,7 +351,7 @@ export const messages = {
   'drill.score.total.fieldEach': 'Each non-dealer',
   'drill.score.total.fieldDealer': 'Dealer',
   'drill.score.total.fieldAll': 'Each opponent',
-  'drill.score.total.shorthand': 'Trailing zeros may be left off — 2000 can be typed as 2.',
+  'drill.score.total.fullFigure': 'Type the full figure, including its trailing zeros — 2000, not 2.',
   'drill.score.total.dora': 'Dora indicator',
   'drill.score.total.yourAnswer': 'You answered {answer}; the hand pays {correct}.',
 
@@ -545,6 +552,15 @@ export const messages = {
   'lesson.fu.specialE': 'Pinfu on a discard',
   'lesson.fu.specialF': 'is 30: base 20 plus the closed-hand bonus.',
   'lesson.fu.exPinfu': 'Pinfu: all runs, a worthless pair, and a two-sided wait',
+  'lesson.fu.h2Kan': 'A kan, closed and open',
+  'lesson.fu.kanIntro':
+    'A kan is worth practising on its own, because it is the one meld whose fu you cannot reach from the triplet rules — it quadruples rather than doubles. The same hand appears twice below, differing only in how the four 1m were obtained.',
+  'lesson.fu.exAnkan': 'Closed kan (ankan) — {fu}',
+  'lesson.fu.exAnkanNote':
+    'Declared from your own hand, so it is concealed terminals: 8 fu doubled twice over, or 32. The hand also stays closed around it, which is why the closed-hand bonus still applies and riichi remains available.',
+  'lesson.fu.exMinkan': 'Open kan (minkan) — {fu}',
+  'lesson.fu.exMinkanNote':
+    'The same four tiles, but the last came from a discard. That halves the meld to 16 fu and opens the hand, costing the closed-hand bonus as well — the two together are a 30 fu swing on identical tiles.',
   'lesson.fu.floor':
     'And an open hand that happens to earn nothing at all is floored at 30 fu rather than 20, since it cannot claim pinfu to justify the lower number.',
 
@@ -609,4 +625,26 @@ export const messages = {
   'lesson.efficiency.order4': 'Between two equal shapes, keep the one that accepts more tiles.',
   'lesson.efficiency.closing':
     'The quiz below ranks every discard by acceptance, so you can see exactly what each choice costs. Efficiency is not the whole game — safety and hand value matter too — but it is the foundation everything else sits on.',
+
+  // ---- Ukeire calculator ----
+  'ukeire.title': 'Ukeire calculator',
+  'ukeire.intro':
+    'Type any fourteen-tile hand and every discard is ranked by what it accepts — the shanten it leaves, and the exact tiles that would bring it closer, with how many of each are still unseen.',
+  'ukeire.inputLabel': 'Hand notation',
+  'ukeire.inputHelp':
+    'Digits then a suit letter: m for characters, p for circles, s for bamboo, z for honors (1z–4z are the winds East to North, 5z–7z the dragons). A 0 is a red five. Fourteen tiles in all.',
+  'ukeire.errorEmpty': 'Enter a hand to analyse.',
+  'ukeire.errorCount':
+    'A discard question needs fourteen tiles — the thirteen you hold plus the one you just drew. This hand has {n}.',
+  'ukeire.errorFive': 'There are only four of each tile, and this hand holds five {tile}.',
+  'ukeire.complete': 'This hand is already complete, so there is nothing to discard.',
+  'ukeire.ready': 'ready',
+  'ukeire.away': '{n} away',
+  'ukeire.bestReady': 'Discard {tile} and the hand is ready, accepting {tiles}.',
+  'ukeire.bestAway': 'Discard {tile} and the hand is {n} away, accepting {tiles}.',
+  'ukeire.showWorse': 'Show {n} more discards that give up a step',
+  'ukeire.worseNote':
+    'These leave the hand further from ready. They accept more tiles because they are further away — acceptance is only worth comparing between discards that leave the same shanten.',
+  'ukeire.caveat':
+    'Acceptance counts only the tiles in your own hand as seen. At a real table, discards and open melds take more of them off the wall — and efficiency is one input to a discard, not the whole decision.',
 } satisfies Messages

@@ -28,17 +28,16 @@ interface Answered {
 }
 
 /**
- * Reads a points figure, accepting the shorthand players actually use.
+ * Reads a points figure as written.
  *
- * Every payment in riichi is a multiple of 100, so the trailing zeros carry no
- * information and nobody says them: a mangan is "eight", 1300 all is "thirteen".
- * Typing four digits for every answer would make the drill a typing exercise, so
- * a number under 100 is read as hundreds — 8 is 800, 13 is 1300, 2 is 200.
+ * The full number, always: 8000 is 8000 and 1300 is 1300. Players do say
+ * "eight" for a mangan, but accepting that here taught the shorthand at the
+ * expense of the figure — and it was ambiguous besides, since "8" reads equally
+ * as 800 or 8000. A drill for learning what a hand pays should have the learner
+ * write what it pays.
  *
- * The ambiguity this creates is real but harmless: 8 could mean 800 or 8000.
- * Scaling by 100 rather than guessing the magnitude keeps one rule, and a
- * four-digit answer is always accepted as itself, so a player who distrusts the
- * shorthand can ignore it.
+ * Spacing and thousands separators are still tolerated, since `12,000` and
+ * `12000` are the same answer typed by two different habits.
  *
  * Returns NaN for anything unparseable, which grades as wrong rather than
  * throwing.
@@ -48,7 +47,7 @@ export function parsePoints(input: string): number {
   if (trimmed === '') return NaN
   const n = Number(trimmed)
   if (!Number.isFinite(n) || n < 0) return NaN
-  return n < 100 ? n * 100 : n
+  return n
 }
 
 /** One labelled points box. */
@@ -89,8 +88,8 @@ function PointsField({
  * The user's answer, rendered in the same shape as the correct one.
  *
  * Echoing it back as "2000/3900" rather than as the raw keystrokes is what makes
- * a near miss legible — and it shows what the shorthand expanded to, so a player
- * who typed 2 sees that it was read as 200 rather than 2000.
+ * a near miss legible: a player who transposed a digit sees the number they
+ * actually entered set beside the one they owed.
  */
 function formatAnswer(expected: Payment, main: string, dealer: string): string {
   const a = parsePoints(main)
@@ -434,7 +433,17 @@ export function Quiz({
       </div>
 
       {(question.kind === 'choice' || question.kind === 'multi') && (
-        <div className="grid gap-2.5 sm:grid-cols-2">
+        /**
+         * The four options sit in one row, as four buttons.
+         *
+         * A single row makes the options one comparable set: the eye sweeps
+         * them left to right instead of reading a 2x2 block corner by corner,
+         * which is what you actually do when weighing four candidate answers.
+         * It also keeps the hand above them in view rather than pushed up the
+         * page. Below `sm` the row becomes a column, because four options
+         * abreast on a phone leaves each too narrow to read.
+         */
+        <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-4">
           {question.choices?.map((choice, i) => {
             const picked = selection.includes(choice.id)
             // Once graded, the right answer flashes a ring outward — the one
@@ -455,7 +464,7 @@ export function Quiz({
                 onClick={() => toggle(choice.id)}
                 disabled={answered}
                 style={stagger(i, 50)}
-                className={`anim-fade-up flex items-center gap-3 rounded-xl border px-3.5 py-2.5 text-left text-sm transition duration-200 ${tone}`}
+                className={`anim-fade-up flex items-center justify-center gap-2 rounded-xl border px-3 py-2.5 text-center text-sm transition duration-200 ${tone}`}
               >
                 {choice.tiles && choice.tiles.length > 0 && (
                   <span className="flex shrink-0 items-end gap-0.5">
@@ -464,7 +473,11 @@ export function Quiz({
                     ))}
                   </span>
                 )}
-                {choice.label}
+                {/* An option that draws its tiles needs no text beside them:
+                    the notation would only restate the picture, and the tile
+                    is what the player is being asked to recognize. Generators
+                    signal this by rendering an empty label. */}
+                {choice.label && <span>{choice.label}</span>}
               </button>
             )
           })}
@@ -513,7 +526,7 @@ export function Quiz({
           </div>
           {!answered && (
             <p className="mt-2 text-xs text-black/50 dark:text-white/50">
-              {t.t('drill.score.total.shorthand')}
+              {t.t('drill.score.total.fullFigure')}
             </p>
           )}
           {answered && (

@@ -323,7 +323,7 @@ export function YakuLesson() {
       id="yaku"
       title={t.t('module.yaku.title')}
       subtitle={t.t('lesson.yaku.subtitle')}
-      drills={[GENERATORS.yakuIdentification]}
+      drills={[GENERATORS.yakuIdentification, GENERATORS.yakuCompletion]}
     >
       <p>
         {t.t('lesson.yaku.p1a')} <strong>{t.t('lesson.yaku.p1yaku')}</strong>{' '}

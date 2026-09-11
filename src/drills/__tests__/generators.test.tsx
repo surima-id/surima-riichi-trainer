@@ -42,13 +42,25 @@ describe.each(ALL_GENERATORS.map((g) => [g.id, g] as const))('%s', (_id, generat
       }
     })
 
-    it('never offers a duplicate or empty choice label', () => {
+    it('never offers an indistinguishable or duplicate choice', () => {
       for (const seed of SEEDS) {
         const q = generator.generate(seed, t)
         if (!q.choices) continue
-        const labels = q.choices.map((c) => c.label)
-        expect(labels.every((l) => l.trim().length > 0), `seed ${seed} has a blank label`).toBe(true)
-        expect(new Set(labels).size, `seed ${seed}: ${labels.join(', ')}`).toBe(labels.length)
+
+        /**
+         * An option has to carry something the player can read: text, or the
+         * tiles it draws. The wait drill deliberately ships an empty label
+         * because its options are tile rows, and repeating the notation beside
+         * the picture would only restate it.
+         */
+        const shown = q.choices.map((c) =>
+          c.label.trim() || (c.tiles ?? []).map((tile) => `#${tile}`).join(''),
+        )
+        expect(
+          shown.every((s) => s.length > 0),
+          `seed ${seed} has an option showing nothing`,
+        ).toBe(true)
+        expect(new Set(shown).size, `seed ${seed}: ${shown.join(', ')}`).toBe(shown.length)
       }
     })
 
@@ -97,19 +109,48 @@ describe.each(ALL_GENERATORS.map((g) => [g.id, g] as const))('%s', (_id, generat
    * readings that score differently. Drills teach the ordinary case, so no
    * question poses one — which also rules out the five-copy hand that cannot
    * exist at all.
+   *
+   * A kan is the deliberate exception, and not the same problem: its four tiles
+   * are declared on the table as one meld, so they are never ambiguous about
+   * which shape they belong to. Its face is exempted rather than the check
+   * being dropped, so a fourth loose copy elsewhere in a kan hand still fails.
    */
-  it('never deals four copies of a tile', () => {
+  it('never deals four loose copies of a tile', () => {
     const t = createTranslator('en')
     for (const seed of SEEDS) {
       const q = generator.generate(seed, t)
       const counts = new Map<number, number>()
+      const declared = new Set<number>()
       for (const tile of q.tiles ?? []) counts.set(face(tile), (counts.get(face(tile)) ?? 0) + 1)
       for (const call of q.calls ?? []) {
+        if (call.kind === 'ankan' || call.kind === 'minkan') {
+          declared.add(face(call.tiles[0]))
+          continue
+        }
         for (const tile of call.tiles) counts.set(face(tile), (counts.get(face(tile)) ?? 0) + 1)
       }
-      const over = [...counts.entries()].filter(([, n]) => n > 3)
+      const over = [...counts.entries()].filter(([f, n]) => n > 3 && !declared.has(f))
       expect(over, `seed ${seed} deals ${over.map(([f, n]) => `${n}x face ${f}`).join(', ')}`).toEqual([])
     }
+  })
+
+  /**
+   * A kan quadruples a triplet's fu rather than doubling it, so a concealed kan
+   * of terminals is 32 fu where the triplet is 8 — a difference big enough to
+   * move a hand two rows up the payment table. Both kinds have to show up: the
+   * closed one is declared from the hand, the open one called off a discard,
+   * and they differ from each other by a factor of two.
+   */
+  it('poses both kinds of kan, if it poses kans at all', () => {
+    if (generator.id !== 'fu.count') return
+    const t = createTranslator('en')
+    const kinds = new Set<string>()
+    for (const seed of SEEDS) {
+      for (const call of generator.generate(seed, t).calls ?? []) {
+        if (call.kind === 'ankan' || call.kind === 'minkan') kinds.add(call.kind)
+      }
+    }
+    expect([...kinds].sort()).toEqual(['ankan', 'minkan'])
   })
 
   /**

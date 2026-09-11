@@ -12,16 +12,12 @@ describe('parsePoints', () => {
     expect(parsePoints('12000')).toBe(12000)
   })
 
-  it('expands the trailing-zero shorthand players actually speak', () => {
-    // "eight" for a mangan, "thirteen" for 1300 all.
-    expect(parsePoints('8')).toBe(800)
-    expect(parsePoints('13')).toBe(1300)
-    expect(parsePoints('2')).toBe(200)
-    expect(parsePoints('39')).toBe(3900)
-  })
-
-  it('takes 100 as the boundary, not the shorthand', () => {
-    expect(parsePoints('99')).toBe(9900)
+  it('does not expand a bare number into the spoken shorthand', () => {
+    // Players say "eight" for a mangan, but the drill teaches the figure, and
+    // "8" reads equally as 800 or 8000 — so it is graded as the 8 it says.
+    expect(parsePoints('8')).toBe(8)
+    expect(parsePoints('13')).toBe(13)
+    expect(parsePoints('99')).toBe(99)
     expect(parsePoints('100')).toBe(100)
   })
 

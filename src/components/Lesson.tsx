@@ -18,9 +18,17 @@ export interface LessonProps {
   subtitle: string
   children: ReactNode
   drills: Generator[]
+  /**
+   * Content placed below the quiz, outside the lesson body.
+   *
+   * The body above is withdrawn while a quiz runs, which is right for prose the
+   * quiz is testing and wrong for a reference tool — so anything that should
+   * stay on screen throughout goes here instead.
+   */
+  after?: ReactNode
 }
 
-export function Lesson({ id, title, subtitle, children, drills }: LessonProps) {
+export function Lesson({ id, title, subtitle, children, drills, after }: LessonProps) {
   const t = useT()
   const { readLesson } = useProgress()
 
@@ -90,6 +98,12 @@ export function Lesson({ id, title, subtitle, children, drills }: LessonProps) {
 
         <Quiz generators={drills} onRunningChange={handlePhase} />
       </section>
+
+      {after && (
+        <section className="anim-fade-up" style={stagger(3, 90)}>
+          {after}
+        </section>
+      )}
     </article>
   )
 }

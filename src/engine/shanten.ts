@@ -138,14 +138,27 @@ export function isTenpai(tiles: Tile[], calledMelds = 0): boolean {
  * dora indicators, if the caller wants to model that); each occurrence removes
  * one of the four copies from the count.
  */
-export function acceptance(
-  tiles: Tile[],
-  calledMelds = 0,
-  visible: Tile[] = tiles,
-): { faces: number[]; tilesLeft: number } {
+export interface Acceptance {
+  /** The faces that lower shanten, ascending. */
+  faces: number[]
+  /**
+   * The same faces with how many copies of each are still unseen.
+   *
+   * Kept beside `faces` rather than replacing it because the two answer
+   * different questions: a drill asks *which* tiles help, while the calculator
+   * shows how many of each are left — a wait on a face with one copy left is a
+   * far worse wait than the bare face list suggests.
+   */
+  accepts: { tile: number; remaining: number }[]
+  /** Total unseen copies across every accepted face — the number players quote. */
+  tilesLeft: number
+}
+
+export function acceptance(tiles: Tile[], calledMelds = 0, visible: Tile[] = tiles): Acceptance {
   const current = shanten(tiles, calledMelds)
   const seen = toCounts(visible)
   const faces: number[] = []
+  const accepts: { tile: number; remaining: number }[] = []
   let tilesLeft = 0
 
   for (let f = 0; f < NUM_FACES; f++) {
@@ -154,11 +167,12 @@ export function acceptance(
     const next = shanten([...tiles, f], calledMelds)
     if (next < current) {
       faces.push(f)
+      accepts.push({ tile: f, remaining })
       tilesLeft += remaining
     }
   }
 
-  return { faces, tilesLeft }
+  return { faces, accepts, tilesLeft }
 }
 
 /** The tiles that complete a tenpai hand. Empty if the hand is not tenpai. */
@@ -174,6 +188,8 @@ export interface DiscardOption {
   shanten: number
   /** Faces that improve the remaining hand. */
   faces: number[]
+  /** Those faces with the unseen copies of each, for the calculator's table. */
+  accepts: { tile: number; remaining: number }[]
   /** How many of those tiles are still unseen — the number players optimize. */
   tilesLeft: number
 }
@@ -199,8 +215,8 @@ export function discardOptions(
 
     const remaining = [...tiles.slice(0, i), ...tiles.slice(i + 1)]
     const after = shanten(remaining, calledMelds)
-    const { faces, tilesLeft } = acceptance(remaining, calledMelds, visible)
-    options.push({ tile: f, shanten: after, faces, tilesLeft })
+    const { faces, accepts, tilesLeft } = acceptance(remaining, calledMelds, visible)
+    options.push({ tile: f, shanten: after, faces, accepts, tilesLeft })
   }
 
   return options.sort((a, b) => a.shanten - b.shanten || b.tilesLeft - a.tilesLeft || a.tile - b.tile)

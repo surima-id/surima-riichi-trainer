@@ -2,7 +2,10 @@ import { Hand } from '../components/Hand'
 import { Example, Lesson } from '../components/Lesson'
 import { Card, LessonHeading, LineItem } from '../components/ui'
 import { GENERATORS } from '../drills/generators'
+import { scoreHandFull } from '../engine/explain'
+import { type Call } from '../engine/parse'
 import { parseTiles } from '../engine/tiles'
+import { defaultContext } from '../engine/yaku'
 import { useT } from '../i18n'
 import { type MessageKey } from '../i18n'
 
@@ -22,6 +25,47 @@ const TRIPLET_ROWS: { key: MessageKey; fu: number }[] = [
   { key: 'fu.meld.kan.open.terminal-honor', fu: 16 },
   { key: 'fu.meld.kan.concealed.terminal-honor', fu: 32 },
 ]
+
+/**
+ * The same hand twice, differing only in how its kan was obtained.
+ *
+ * A kan is the one meld whose fu a player cannot reach from the triplet rules:
+ * it quadruples rather than doubles. Showing the closed and open versions side
+ * by side isolates that — identical tiles, identical wait, and a 30 fu gap
+ * that comes entirely from whether the fourth tile was drawn or claimed.
+ */
+const KAN_EXAMPLE_TILES = '234p567p345s99s'
+const KAN_EXAMPLE_WIN = '3s'
+
+function kanCall(notation: string, kind: 'ankan' | 'minkan'): Call {
+  const tiles = parseTiles(notation)
+  return { kind, tile: tiles[0], tiles }
+}
+
+/**
+ * Runs the example through the scorer rather than stating its fu inline, so the
+ * number the lesson teaches cannot drift from the number the drill marks right.
+ */
+function kanExampleFu(kind: 'ankan' | 'minkan'): number {
+  const hand = {
+    concealed: parseTiles(KAN_EXAMPLE_TILES),
+    calls: [kanCall('1111m', kind)],
+    winTile: parseTiles(KAN_EXAMPLE_WIN)[0],
+  }
+  return scoreHandFull(hand, defaultContext({ riichi: kind === 'ankan' })).fu.total
+}
+
+function KanExample({ kind }: { kind: 'ankan' | 'minkan' }) {
+  return (
+    <Hand
+      tiles={parseTiles(KAN_EXAMPLE_TILES)}
+      calls={[kanCall('1111m', kind)]}
+      winTile={parseTiles(KAN_EXAMPLE_WIN)[0]}
+      size="sm"
+      sort={false}
+    />
+  )
+}
 
 export function FuLesson() {
   const t = useT()
@@ -83,6 +127,23 @@ export function FuLesson() {
 
       <Example title={t.t('lesson.fu.exPinfu')}>
         <Hand tiles={parseTiles('234m22p345678s567s')} size="sm" sort={false} />
+      </Example>
+
+      <LessonHeading>{t.t('lesson.fu.h2Kan')}</LessonHeading>
+      <p>{t.t('lesson.fu.kanIntro')}</p>
+
+      <Example title={t.t('lesson.fu.exAnkan', { fu: t.fu(kanExampleFu('ankan')) })}>
+        <KanExample kind="ankan" />
+        <p className="mt-2.5 text-sm text-black/60 dark:text-white/60">
+          {t.t('lesson.fu.exAnkanNote')}
+        </p>
+      </Example>
+
+      <Example title={t.t('lesson.fu.exMinkan', { fu: t.fu(kanExampleFu('minkan')) })}>
+        <KanExample kind="minkan" />
+        <p className="mt-2.5 text-sm text-black/60 dark:text-white/60">
+          {t.t('lesson.fu.exMinkanNote')}
+        </p>
       </Example>
 
       <p>{t.t('lesson.fu.floor')}</p>

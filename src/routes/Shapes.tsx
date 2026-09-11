@@ -12,7 +12,7 @@ export function ShapesLesson() {
       id="shapes"
       title={t.t('lesson.shapes.title')}
       subtitle={t.t('lesson.shapes.subtitle')}
-      drills={[GENERATORS.waitIdentification, GENERATORS.shantenCount]}
+      drills={[GENERATORS.waitIdentification]}
     >
       <p>
         {t.t('lesson.shapes.p1a')} <strong>{t.t('lesson.shapes.p1b')}</strong>

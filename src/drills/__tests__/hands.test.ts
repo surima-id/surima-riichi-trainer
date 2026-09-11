@@ -3,7 +3,7 @@ import { buildRandomHand, buildScoringHand } from '../hands'
 import { makeRng } from '../random'
 import { scoreHandFull } from '../../engine/explain'
 import { decompose } from '../../engine/parse'
-import { isSimple, toCounts } from '../../engine/tiles'
+import { face, isSimple, toCounts } from '../../engine/tiles'
 
 describe('makeRng', () => {
   it('is deterministic for a given seed', () => {
@@ -59,6 +59,42 @@ describe('buildRandomHand', () => {
       if (!built) continue
       const all = [...built.hand.concealed, ...built.hand.calls.flatMap((c) => c.tiles)]
       expect(all.every(isSimple)).toBe(true)
+    }
+  })
+
+  /**
+   * A kan is four copies of one tile, so it is the one shape that legitimately
+   * needs the fourth copy the three-copy cap otherwise withholds.
+   */
+  it('builds a kan as four copies of a tile', () => {
+    let built = null
+    for (let seed = 0; seed < 200 && !built; seed++) {
+      built = buildRandomHand(makeRng(seed), { kans: 1 })
+    }
+    expect(built).not.toBeNull()
+    const kan = built!.hand.calls.find((c) => c.kind === 'ankan' || c.kind === 'minkan')
+    expect(kan, 'asked for a kan and got none').toBeDefined()
+    expect(kan!.tiles).toHaveLength(4)
+    expect(new Set(kan!.tiles.map(face)).size, 'a kan must be four of one face').toBe(1)
+  })
+
+  /**
+   * A closed kan is declared on the table but does not open the hand — riichi
+   * and the other closed-only yaku survive it. Deriving `menzen` from the calls
+   * rather than from their count is what keeps that true.
+   */
+  it('keeps a hand closed around a closed kan, and open around an open one', () => {
+    for (let seed = 0; seed < 200; seed++) {
+      const closed = buildRandomHand(makeRng(seed), { kans: 1 })
+      if (closed) {
+        expect(closed.hand.calls.every((c) => c.kind === 'ankan')).toBe(true)
+        expect(closed.context.menzen, `seed ${seed}: a closed kan opened the hand`).toBe(true)
+      }
+      const open = buildRandomHand(makeRng(seed), { kans: 1, openMelds: 1 })
+      if (open) {
+        expect(open.hand.calls.some((c) => c.kind === 'minkan')).toBe(true)
+        expect(open.context.menzen, `seed ${seed}: an open kan left the hand closed`).toBe(false)
+      }
     }
   })
 

@@ -98,7 +98,7 @@ export function ScoreLesson() {
       id="score"
       title={t.t('module.score.title')}
       subtitle={t.t('lesson.score.subtitle')}
-      drills={[GENERATORS.scoreCount]}
+      drills={[GENERATORS.scorePick, GENERATORS.scoreCount]}
     >
       <p>
         {t.t('lesson.score.p1a')} <strong>{t.t('lesson.score.p1base')}</strong>:
