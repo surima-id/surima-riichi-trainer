@@ -99,6 +99,51 @@ function handContext(built: ReturnType<typeof buildScoringHand>, t: Translator) 
   }
 }
 
+/** Counts copies of each face in a hand. */
+function faceCounts(tiles: Tile[]): Map<number, number> {
+  const counts = new Map<number, number>()
+  for (const tile of tiles) counts.set(face(tile), (counts.get(face(tile)) ?? 0) + 1)
+  return counts
+}
+
+/** True when some tile appears at least `n` times. */
+function hasAtLeast(tiles: Tile[], n: number): boolean {
+  return [...faceCounts(tiles).values()].some((count) => count >= n)
+}
+
+/**
+ * Swaps `count` tiles of a hand for random ones, respecting the tile supply.
+ *
+ * Drills build questions by taking a complete hand and breaking it, and the
+ * obvious way to do that — assign a random face to a random slot — can deal a
+ * fifth copy of a tile. Only four of each exist, so such a hand cannot occur
+ * and asking a question about it is asking about a position no player can be
+ * in. The replacement pool is therefore restricted to faces that still have
+ * room.
+ *
+ * `maxCopies` lowers that ceiling below the usual four, which the efficiency
+ * drill uses to keep quads out of hands entirely.
+ */
+function replaceTiles(rng: Rng, tiles: Tile[], count: number, maxCopies = 4): Tile[] {
+  const out = [...tiles]
+  const copies = faceCounts(out)
+
+  for (let i = 0; i < count; i++) {
+    const at = rng.int(out.length)
+    const outgoing = face(out[at])
+    // The outgoing tile frees a slot of its own face, so it is discounted here.
+    const room = ALL_FACES.filter(
+      (f) => (copies.get(f) ?? 0) - (f === outgoing ? 1 : 0) < maxCopies,
+    )
+    if (room.length === 0) break
+    const incoming = rng.pick(room)
+    copies.set(outgoing, (copies.get(outgoing) ?? 1) - 1)
+    copies.set(incoming, (copies.get(incoming) ?? 0) + 1)
+    out[at] = incoming
+  }
+  return out
+}
+
 /**
  * Randomizes the win condition. Doing this here rather than inside the hand
  * builder keeps the builder focused on tile shapes.
@@ -315,12 +360,9 @@ const shantenCount: Generator = {
     const built = buildScoringHand(makeRng(seed))
     if (!built) return tileRecognition.generate(seed, t)
 
-    // Swap a couple of tiles out for random ones to back the hand away from ready.
-    const swapped = [...built.hand.concealed]
-    const swaps = 1 + rng.int(2)
-    for (let i = 0; i < swaps; i++) {
-      swapped[rng.int(swapped.length)] = rng.pick(ALL_FACES)
-    }
+    // Swap a couple of tiles out for random ones to back the hand away from
+    // ready, respecting the four-copies-per-tile limit as the builder does.
+    const swapped = replaceTiles(rng, built.hand.concealed, 1 + rng.int(2))
 
     /**
      * Shown as the 13 tiles a hand holds between draws, not 14.
@@ -601,12 +643,18 @@ const efficiencyDrill: Generator = {
       const built = buildScoringHand(makeRng(seed + attempt * 7907), { openMelds: 0 })
       if (!built) continue
 
-      // Perturb a complete hand into a realistic 14-tile decision.
-      const perturbed = [...built.hand.concealed]
-      for (let i = 0; i < 2 + rng.int(2); i++) {
-        perturbed[rng.int(perturbed.length)] = rng.pick(ALL_FACES)
-      }
+      /**
+       * Perturb a complete hand into a realistic 14-tile decision.
+       *
+       * Capped at three copies rather than four: a quad is a kan decision, not
+       * a discard one, and this drill is about which tile to throw from an
+       * ordinary hand.
+       */
+      const perturbed = replaceTiles(rng, built.hand.concealed, 2 + rng.int(2), 3)
       if (perturbed.length !== 14) continue
+      // The built hand may already have held a quad, which replacement cannot
+      // undo.
+      if (hasAtLeast(perturbed, 4)) continue
 
       /**
        * Sorted here rather than by `Hand`, because `correctIndices` below index

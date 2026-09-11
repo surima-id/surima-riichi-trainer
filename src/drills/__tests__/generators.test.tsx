@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { ALL_GENERATORS } from '../generators'
 import { type Question } from '../types'
 import { LANGS, createTranslator } from '../../i18n'
-import { NORTH } from '../../engine/tiles'
+import { NORTH, face } from '../../engine/tiles'
 
 /**
  * Generators run in the browser, but they are pure functions of `(seed, t)`, so
@@ -88,6 +88,25 @@ describe.each(ALL_GENERATORS.map((g) => [g.id, g] as const))('%s', (_id, generat
       expect(a.correctIndices, `seed ${seed}`).toEqual(b.correctIndices)
       expect(a.payment, `seed ${seed}`).toEqual(b.payment)
       expect(a.tiles, `seed ${seed}`).toEqual(b.tiles)
+    }
+  })
+
+  /**
+   * Only four copies of each tile exist, so a hand holding five is not a hand.
+   * This is asserted for every generator rather than just the efficiency drill,
+   * because any generator that builds tiles by random replacement can hit it.
+   */
+  it('never deals more copies of a tile than exist', () => {
+    const t = createTranslator('en')
+    for (const seed of SEEDS) {
+      const q = generator.generate(seed, t)
+      const counts = new Map<number, number>()
+      for (const tile of q.tiles ?? []) counts.set(face(tile), (counts.get(face(tile)) ?? 0) + 1)
+      for (const call of q.calls ?? []) {
+        for (const tile of call.tiles) counts.set(face(tile), (counts.get(face(tile)) ?? 0) + 1)
+      }
+      const over = [...counts.entries()].filter(([, n]) => n > 4)
+      expect(over, `seed ${seed} deals ${over.map(([f, n]) => `${n}x face ${f}`).join(', ')}`).toEqual([])
     }
   })
 
