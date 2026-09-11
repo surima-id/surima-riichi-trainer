@@ -478,6 +478,7 @@ export const messages = {
   'lesson.shapes.specialD':
     '(kokushi musou) is one of each terminal and honor, plus a second copy of any one of them. Both must be entirely closed.',
   'lesson.shapes.exKokushi': 'Thirteen Orphans',
+  'lesson.shapes.exChiitoitsu': 'Seven Pairs — seven different pairs, never two of the same',
 
   // ---- Lesson: Yaku ----
   'lesson.yaku.subtitle': 'A hand without a yaku cannot win, no matter how it looks.',

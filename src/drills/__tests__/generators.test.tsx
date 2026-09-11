@@ -111,6 +111,27 @@ describe.each(ALL_GENERATORS.map((g) => [g.id, g] as const))('%s', (_id, generat
   })
 
   /**
+   * A wind triplet is yakuhai only when the wind matches the player's seat or
+   * the round, so a question whose answer includes one has to say what those
+   * winds are. Otherwise the answer key rests on a fact the player was never
+   * shown — the same defect that had the han drill scoring an unstated riichi.
+   */
+  it('states the winds whenever the answer depends on them', () => {
+    const t = createTranslator('en')
+    const WIND_YAKU = [t.yaku('yakuhai-seat'), t.yaku('yakuhai-round')]
+    for (const seed of SEEDS) {
+      const q = generator.generate(seed, t)
+      const answers = (q.choices ?? []).filter((c) => c.correct).map((c) => c.label)
+      const needsWinds = answers.some((label) => WIND_YAKU.some((y) => label.includes(y)))
+      if (!needsWinds) continue
+      expect(q.context?.seatWind, `seed ${seed} scores a wind yaku without naming the seat wind`)
+        .toBeDefined()
+      expect(q.context?.roundWind, `seed ${seed} scores a wind yaku without naming the round wind`)
+        .toBeDefined()
+    }
+  })
+
+  /**
    * North is a seat but never a round. A "North round" would make a North
    * triplet yakuhai, which is a judgement no player ever has to make.
    */

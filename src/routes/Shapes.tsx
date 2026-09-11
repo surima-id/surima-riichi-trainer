@@ -69,6 +69,12 @@ export function ShapesLesson() {
       <Example title={t.t('lesson.shapes.exKokushi')}>
         <Hand tiles={parseTiles('19m19p19s12345677z')} size="sm" sort={false} />
       </Example>
+      {/* The prose names both exceptions; without this, only one of them was
+          ever shown. The pairs are drawn in suit order so the shape reads as
+          seven pairs at a glance rather than as fourteen loose tiles. */}
+      <Example title={t.t('lesson.shapes.exChiitoitsu')}>
+        <Hand tiles={parseTiles('1133m5577p2299s11z')} size="sm" sort={false} />
+      </Example>
     </Lesson>
   )
 }

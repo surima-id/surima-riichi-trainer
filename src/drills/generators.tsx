@@ -476,15 +476,22 @@ const yakuIdentification: Generator = {
         calls: built.hand.calls,
         winTile: built.hand.winTile,
         /**
-         * No context lines here, unlike the counting drills.
+         * The winds, and nothing else.
          *
-         * This drill grades only the shape-based yaku — riichi, ippatsu and the
-         * rest are filtered out of both the answer and the distractors — so
-         * seat wind, round wind and a riichi declaration decide nothing. Listing
-         * them invites the player to weigh facts that cannot change the answer.
-         * The one exception is open versus closed, which the called melds show
-         * in the hand itself.
+         * A wind triplet is yakuhai only when it matches the player's seat or
+         * the round, so both winds are part of the answer key — a hand with a
+         * South triplet scores or does not score depending on facts the tiles
+         * cannot show. The rest of the counting drills' strip is omitted: this
+         * drill filters riichi, ippatsu and the other situational yaku out of
+         * both the answer and the distractors, so a riichi declaration or the
+         * win condition decides nothing here and would only invite the player
+         * to weigh facts that cannot change the answer. Open versus closed does
+         * matter, and the called melds show it in the hand itself.
          */
+        context: {
+          seatWind: built.context.seatWind,
+          roundWind: built.context.roundWind,
+        },
         choices: options,
         explanation: <Breakdown scored={scored} dealer={built.dealer} />,
         seed,

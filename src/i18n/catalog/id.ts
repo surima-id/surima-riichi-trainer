@@ -158,10 +158,10 @@ export const messages = {
   'quiz.reviewQuestion': 'Soal {n}',
   'quiz.bestScore': 'Terbaik: {n}/10',
   // ---- Home ----
-  'home.streak': 'Runtutan {n} hari',
+  'home.streak': '{n} Hari berturut-turut',
   'home.bestStreak': 'Terbaik: {n}',
   'home.review': 'Perlu ditinjau: {list}',
-  'home.reset': 'Atur ulang progres',
+  'home.reset': 'Reset Progress',
   'home.read': 'Dibaca',
   'home.accuracy': 'Akurasimu',
   'home.credit': 'Gambar tile dari FluffyStuff/riichi-mahjong-tiles, dirilis ke domain publik (CC0).',
@@ -433,6 +433,7 @@ export const messages = {
   'lesson.shapes.specialC': 'Tiga Belas Yatim',
   'lesson.shapes.specialD': '(kokushi musou) adalah satu dari tiap terminal dan honor tile, ditambah salinan kedua dari salah satunya. Keduanya harus sepenuhnya tertutup.',
   'lesson.shapes.exKokushi': 'Tiga Belas Yatim',
+  'lesson.shapes.exChiitoitsu': 'Tujuh Pasang — tujuh pasang berbeda, tidak boleh dua pasang yang sama',
   // ---- Lesson: Yaku ----
   'lesson.yaku.subtitle': 'Tangan tanpa yaku tidak bisa menang, sebagus apa pun kelihatannya.',
   'lesson.yaku.p1a': 'Sebuah',
