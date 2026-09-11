@@ -131,6 +131,83 @@ export function Badge({
   )
 }
 
+/**
+ * A horizontal bar for a value out of a maximum.
+ *
+ * The quiz counter and the accuracy panel had each grown their own version of
+ * this, which meant two copies of the same gradient and only one of them wired up
+ * for a screen reader. `label` is required rather than optional for that reason:
+ * a bare bar announces itself as a progressbar with no idea what it measures.
+ */
+export function Meter({
+  value,
+  max,
+  label,
+  className = '',
+  barClassName = '',
+}: {
+  value: number
+  max: number
+  label: string
+  /** Sizing for the track; the default is the thin bar used in dense rows. */
+  className?: string
+  /** Extra classes for the fill, e.g. `sheen sheen-run` on the quiz counter. */
+  barClassName?: string
+}) {
+  // Clamped so a value past the maximum cannot overflow the track, which is
+  // cheaper than trusting every caller to have capped it first.
+  const ratio = max <= 0 ? 0 : Math.min(1, Math.max(0, value / max))
+  return (
+    <span
+      role="progressbar"
+      aria-valuenow={value}
+      aria-valuemin={0}
+      aria-valuemax={max}
+      aria-label={label}
+      className={`block overflow-hidden rounded-full bg-black/10 dark:bg-white/15 ${className || 'h-1.5 w-24'}`}
+    >
+      <span
+        className={`block h-full rounded-full bg-gradient-to-r from-felt-600 to-felt-400 transition-[width] duration-700 ease-out dark:from-gold-400 dark:to-gold-300 ${barClassName}`}
+        style={{ width: `${ratio * 100}%` }}
+      />
+    </span>
+  )
+}
+
+/**
+ * Mastery as a row of discrete marks rather than a bar.
+ *
+ * Used where a bar would be one more horizontal line in an already busy card: a
+ * handful of marks resolves to a count at a glance, where a part-filled bar has
+ * to be estimated.
+ */
+export function Pips({
+  filled,
+  total,
+  label,
+}: {
+  filled: number
+  total: number
+  label: string
+}) {
+  return (
+    <span className="flex items-center gap-1" title={label}>
+      <span className="sr-only">{label}</span>
+      {Array.from({ length: total }, (_, i) => (
+        <span
+          key={i}
+          aria-hidden="true"
+          className={`h-1.5 w-1.5 rounded-full transition duration-300 ${
+            i < filled
+              ? 'bg-gold-400 dark:bg-gold-300'
+              : 'bg-black/15 dark:bg-white/20'
+          }`}
+        />
+      ))}
+    </span>
+  )
+}
+
 /** A labelled row, used throughout the fu and score breakdowns. */
 export function LineItem({
   label,

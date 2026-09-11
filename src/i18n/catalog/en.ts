@@ -168,6 +168,17 @@ export const messages = {
   'quiz.reviewQuestion': 'Question {n}',
   'quiz.bestScore': 'Best: {n}/10',
 
+  // ---- Progress ----
+  'progress.mastered': 'Mastered',
+  'progress.points': '{n} / {max} points',
+  'progress.earned': '+{n} points',
+  'progress.earnedNone': 'No points yet — you need at least 9 out of 10.',
+  'progress.masteredNow': 'You have this chapter fully mastered.',
+  'progress.chapterLabel': 'Chapter mastery: {n} of {max} points',
+  'progress.overall': 'Overall mastery',
+  'progress.overallLabel': 'Overall mastery: {n}%',
+  'progress.xp': '{n} points',
+
   // ---- Home ----
   'home.streak': '{n} day streak',
   'home.bestStreak': 'Best: {n}',

@@ -13,12 +13,11 @@ import { type Payment } from '../engine/score'
 import { makeRng, randomSeed } from '../drills/random'
 import { useI18n } from '../i18n'
 import { useProgress } from '../store/useProgress'
+import { CHAPTER_CAP, QUIZ_LENGTH, chapterPoints, isMastered, pointsForRun } from '../store/progress'
 import { Hand } from './Hand'
 import { HandContext } from './HandContext'
 import { Tile } from './Tile'
-import { Badge, Button, Card, stagger } from './ui'
-
-export const QUIZ_LENGTH = 10
+import { Badge, Button, Card, Meter, stagger } from './ui'
 
 type Phase = 'intro' | 'answering' | 'answered' | 'results'
 
@@ -115,9 +114,12 @@ function buildQuestions(
 
 export function Quiz({
   generators,
+  chapterId,
   onRunningChange,
 }: {
   generators: Generator[]
+  /** The chapter this quiz drills, so a finished run credits its mastery. */
+  chapterId: string
   /**
    * Fires when the quiz starts and stops, so the page around it can clear the
    * lesson prose out of the way while questions are being answered. Also fires
@@ -126,7 +128,7 @@ export function Quiz({
   onRunningChange?: (running: boolean) => void
 }) {
   const { t } = useI18n()
-  const { progress, record, recordQuiz } = useProgress()
+  const { progress, record, recordRun } = useProgress()
 
   const [runSeed, setRunSeed] = useState(randomSeed)
   const [phase, setPhase] = useState<Phase>('intro')
@@ -213,7 +215,7 @@ export function Quiz({
   const advance = () => {
     if (index + 1 >= QUIZ_LENGTH) {
       const score = answers.filter((a) => a.correct).length
-      recordQuiz(quizId, score)
+      recordRun({ chapterId, quizId, score })
       setPhase('results')
       // The results screen reviews every question, so the lesson comes back.
       onRunningChange?.(false)
@@ -277,6 +279,11 @@ export function Quiz({
           ? 'quiz.resultsStrong'
           : 'quiz.resultsKeepGoing'
 
+    const earned = pointsForRun(score)
+    const points = chapterPoints(progress, chapterId)
+    // Only celebrate the run that reached the cap, not every visit afterwards.
+    const mastered = isMastered(progress, chapterId) && earned > 0
+
     return (
       <Card className="anim-fade-up">
         <h3 className="text-lg font-semibold tracking-tight">{t.t('quiz.resultsTitle')}</h3>
@@ -291,6 +298,45 @@ export function Quiz({
         <p className="anim-fade-up mt-1 text-black/60 dark:text-white/60" style={stagger(3, 90)}>
           {t.t(verdict)}
         </p>
+
+        {/* What the run was worth, and where it leaves the chapter. The points
+            were banked in `advance()` before this render, so the bar is read from
+            the store rather than recomputed — it already includes this run. */}
+        <div
+          className="anim-fade-up mt-5 flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-dashed border-black/10 pt-4 dark:border-white/10"
+          style={stagger(4, 90)}
+        >
+          {earned > 0 ? (
+            <Badge tone="gold">{t.t('progress.earned', { n: earned })}</Badge>
+          ) : (
+            <span className="text-sm text-black/55 dark:text-white/55">
+              {t.t('progress.earnedNone')}
+            </span>
+          )}
+          <span className="ml-auto flex items-center gap-2.5">
+            <span className="font-mono text-xs tabular-nums text-black/55 dark:text-white/55">
+              {t.t('progress.points', { n: points, max: CHAPTER_CAP })}
+            </span>
+            <Meter
+              value={points}
+              max={CHAPTER_CAP}
+              label={t.t('progress.chapterLabel', { n: points, max: CHAPTER_CAP })}
+              className="h-1.5 w-28"
+            />
+          </span>
+        </div>
+
+        {mastered && (
+          <p
+            className="anim-pop anim-ring-flash mt-4 flex flex-wrap items-center gap-3 rounded-xl border border-gold-400/40 bg-gold-400/10 px-4 py-3 dark:bg-gold-400/[0.07]"
+            style={stagger(5, 90)}
+          >
+            <Badge tone="gold">{t.t('progress.mastered')}</Badge>
+            <span className="text-sm text-black/70 dark:text-white/70">
+              {t.t('progress.masteredNow')}
+            </span>
+          </p>
+        )}
 
         <div className="mt-6">
           <h4 className="mb-2 text-sm font-semibold uppercase tracking-wide text-black/45 dark:text-white/45">
@@ -378,21 +424,16 @@ export function Quiz({
             {t.t('quiz.progress', { n: index + 1, total: QUIZ_LENGTH })}
           </p>
         </div>
-        <div
-          className="h-2 w-36 overflow-hidden rounded-full bg-black/10 dark:bg-white/15"
-          role="progressbar"
-          aria-valuenow={index + 1}
-          aria-valuemin={1}
-          aria-valuemax={QUIZ_LENGTH}
-        >
-          {/* `sheen-run` is keyed on the question index so the light sweeps the
-              bar once per advance, marking the progress as having just moved. */}
-          <div
-            key={index}
-            className="sheen sheen-run relative h-full overflow-hidden rounded-full bg-gradient-to-r from-felt-600 to-felt-400 transition-all duration-500 ease-out dark:from-gold-400 dark:to-gold-300"
-            style={{ width: `${((index + 1) / QUIZ_LENGTH) * 100}%` }}
-          />
-        </div>
+        {/* Keyed on the question index so `sheen-run` sweeps the bar once per
+            advance, marking the progress as having just moved. */}
+        <Meter
+          key={index}
+          value={index + 1}
+          max={QUIZ_LENGTH}
+          label={t.t('quiz.progress', { n: index + 1, total: QUIZ_LENGTH })}
+          className="h-2 w-36"
+          barClassName="sheen sheen-run relative"
+        />
       </div>
 
       {/* Keyed on the index so each new question fades in as its own thing

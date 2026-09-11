@@ -8,9 +8,10 @@
 import { type ReactNode, useCallback, useEffect, useState } from 'react'
 import { Quiz } from './Quiz'
 import { type Generator } from '../drills/types'
-import { Button, Card, Prose, SectionTitle, stagger } from './ui'
+import { Badge, Button, Card, Meter, Prose, SectionTitle, stagger } from './ui'
 import { type MessageKey, useT } from '../i18n'
 import { useProgress } from '../store/useProgress'
+import { CHAPTER_CAP, chapterPoints, isMastered } from '../store/progress'
 
 /**
  * One named quiz a lesson offers, when it offers more than one.
@@ -38,7 +39,7 @@ export interface LessonProps {
 
 export function Lesson({ id, title, subtitle, children, drills, tracks }: LessonProps) {
   const t = useT()
-  const { readLesson } = useProgress()
+  const { progress, readLesson } = useProgress()
 
   // One unnamed track is the ordinary case, so a lesson with a single quiz says
   // `drills` and never has to name it.
@@ -68,6 +69,9 @@ export function Lesson({ id, title, subtitle, children, drills, tracks }: Lesson
     setClueOpen(false)
   }, [])
 
+  const points = chapterPoints(progress, id)
+  const mastered = isMastered(progress, id)
+
   const body = <Prose>{children}</Prose>
 
   return (
@@ -76,6 +80,28 @@ export function Lesson({ id, title, subtitle, children, drills, tracks }: Lesson
         <h1 className="text-3xl font-extrabold tracking-tight text-balance">{title}</h1>
         {!quizRunning && (
           <p className="mt-2 max-w-2xl text-lg text-black/60 dark:text-white/60">{subtitle}</p>
+        )}
+        {/* Mastery goes with the rest of the page furniture once a quiz starts:
+            a bar counting what this run is about to change is a distraction
+            mid-question. */}
+        {!quizRunning && (
+          <div className="mt-3 flex items-center gap-3">
+            {mastered ? (
+              <Badge tone="gold">{t.t('progress.mastered')}</Badge>
+            ) : (
+              <>
+                <Meter
+                  value={points}
+                  max={CHAPTER_CAP}
+                  label={t.t('progress.chapterLabel', { n: points, max: CHAPTER_CAP })}
+                  className="h-1.5 w-32"
+                />
+                <span className="font-mono text-xs tabular-nums text-black/50 dark:text-white/50">
+                  {t.t('progress.points', { n: points, max: CHAPTER_CAP })}
+                </span>
+              </>
+            )}
+          </div>
         )}
       </header>
 
@@ -139,7 +165,12 @@ export function Lesson({ id, title, subtitle, children, drills, tracks }: Lesson
 
         {/* Keyed on the track so switching tabs mounts a fresh quiz rather
             than carrying the previous one's phase and answers across. */}
-        <Quiz key={trackIndex} generators={activeDrills} onRunningChange={handlePhase} />
+        <Quiz
+          key={trackIndex}
+          generators={activeDrills}
+          chapterId={id}
+          onRunningChange={handlePhase}
+        />
       </section>
 
     </article>

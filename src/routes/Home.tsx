@@ -8,25 +8,24 @@
 import { type CSSProperties } from 'react'
 import { Link } from 'react-router-dom'
 import { Tile } from '../components/Tile'
-import { Badge, Button, Card, SectionTitle, stagger } from '../components/ui'
+import { Badge, Button, Card, Meter, Pips, SectionTitle, stagger } from '../components/ui'
 import { ALL_GENERATORS } from '../drills/generators'
 import { parseTiles } from '../engine/tiles'
 import { useT, type MessageKey } from '../i18n'
-import { accuracy, weakestDrills } from '../store/progress'
+import { CHAPTERS, CHAPTER_IDS } from '../content/chapters'
+import {
+  CHAPTER_CAP,
+  accuracy,
+  chapterPoints,
+  completionRatio,
+  isMastered,
+  totalXp,
+  weakestDrills,
+} from '../store/progress'
 import { useProgress } from '../store/useProgress'
 
 /** One tile from each suit, for the decorative drift behind the wordmark. */
 const HERO_TILES = parseTiles('1s5p7m')
-
-const MODULES = [
-  { id: 'tiles', path: '/tiles' },
-  { id: 'shapes', path: '/shapes' },
-  { id: 'yaku', path: '/yaku' },
-  { id: 'han', path: '/han' },
-  { id: 'fu', path: '/fu' },
-  { id: 'score', path: '/score' },
-  { id: 'efficiency', path: '/efficiency' },
-] as const
 
 /**
  * Drill names come from the generators themselves rather than a second list
@@ -36,12 +35,25 @@ const DRILL_TITLE_KEYS: Record<string, MessageKey> = Object.fromEntries(
   ALL_GENERATORS.map((g) => [g.id, g.titleKey]),
 )
 
+/**
+ * Mastery marks per card.
+ *
+ * One mark per perfect run rather than per point, because the marks should map to
+ * something the player recognises doing — six clean runs — rather than to the
+ * internal currency.
+ */
+const PIP_COUNT = CHAPTER_CAP / 2
+
 export function Home() {
   const t = useT()
   const { progress, reset } = useProgress()
   const weakest = weakestDrills(progress).slice(0, 3)
   const drillName = (id: string) => (DRILL_TITLE_KEYS[id] ? t.t(DRILL_TITLE_KEYS[id]) : id)
   const read = new Set(progress.completedLessons)
+  const points = (id: string) => chapterPoints(progress, id)
+  const mastered = (id: string) => isMastered(progress, id)
+  const xp = totalXp(progress)
+  const percent = Math.round(completionRatio(progress, CHAPTER_IDS) * 100)
 
   return (
     <div className="mx-auto max-w-5xl space-y-10 px-4 py-12 sm:px-6">
@@ -91,6 +103,21 @@ export function Home() {
                 {t.t('home.review', { list: weakest.map(drillName).join(', ') })}
               </span>
             )}
+            {xp > 0 && (
+              <span
+                className="flex items-center gap-2 text-black/55 dark:text-white/55"
+                title={t.t('progress.xp', { n: xp })}
+              >
+                {t.t('progress.overall')}
+                <Meter
+                  value={percent}
+                  max={100}
+                  label={t.t('progress.overallLabel', { n: percent })}
+                  className="h-1.5 w-20"
+                />
+                <span className="font-mono text-xs tabular-nums">{percent}%</span>
+              </span>
+            )}
             <Button variant="ghost" onClick={reset} className="ml-auto">
               {t.t('home.reset')}
             </Button>
@@ -99,7 +126,7 @@ export function Home() {
       )}
 
       <div className="grid gap-3.5 sm:grid-cols-2">
-        {MODULES.map((module, index) => (
+        {CHAPTERS.map((module, index) => (
           <Link
             key={module.id}
             to={module.path}
@@ -116,11 +143,27 @@ export function Home() {
                 <h2 className="text-lg font-semibold tracking-tight">
                   {t.t(`module.${module.id}.title` as MessageKey)}
                 </h2>
-                {read.has(module.id) && <Badge tone="good">{t.t('home.read')}</Badge>}
+                {mastered(module.id) ? (
+                  <Badge tone="gold">{t.t('progress.mastered')}</Badge>
+                ) : (
+                  read.has(module.id) && <Badge tone="good">{t.t('home.read')}</Badge>
+                )}
               </div>
               <p className="text-sm text-black/60 dark:text-white/60">
                 {t.t(`module.${module.id}.blurb` as MessageKey)}
               </p>
+              {points(module.id) > 0 && !mastered(module.id) && (
+                <div className="mt-3">
+                  <Pips
+                    filled={Math.floor(points(module.id) / 2)}
+                    total={PIP_COUNT}
+                    label={t.t('progress.chapterLabel', {
+                      n: points(module.id),
+                      max: CHAPTER_CAP,
+                    })}
+                  />
+                </div>
+              )}
             </Card>
           </Link>
         ))}
@@ -128,7 +171,7 @@ export function Home() {
       </div>
 
       {Object.keys(progress.drills).length > 0 && (
-        <section className="anim-fade-up" style={stagger(MODULES.length + 3, 55)}>
+        <section className="anim-fade-up" style={stagger(CHAPTERS.length + 3, 55)}>
           <SectionTitle>{t.t('home.accuracy')}</SectionTitle>
           <Card>
             {Object.entries(progress.drills).map(([id, stats], i) => {
@@ -142,15 +185,12 @@ export function Home() {
                   <span className="text-sm">{drillName(id)}</span>
                   {/* A bar as well as a number: a list of percentages is a table
                       to read, whereas the bars are a shape to glance at. */}
-                  <span
-                    aria-hidden="true"
-                    className="ml-auto hidden h-1.5 w-24 shrink-0 overflow-hidden rounded-full bg-black/10 sm:block dark:bg-white/15"
-                  >
-                    <span
-                      className="block h-full rounded-full bg-gradient-to-r from-felt-600 to-felt-400 transition-[width] duration-700 ease-out dark:from-gold-400 dark:to-gold-300"
-                      style={{ width: `${Math.round((rate ?? 0) * 100)}%` }}
-                    />
-                  </span>
+                  <Meter
+                    value={Math.round((rate ?? 0) * 100)}
+                    max={100}
+                    label={drillName(id)}
+                    className="ml-auto hidden h-1.5 w-24 shrink-0 sm:block"
+                  />
                   <span className="ml-auto shrink-0 font-mono text-sm font-medium tabular-nums text-black/60 sm:ml-0 dark:text-white/60">
                     {rate === null ? '—' : `${Math.round(rate * 100)}%`} ({stats.correct}/
                     {stats.attempts})

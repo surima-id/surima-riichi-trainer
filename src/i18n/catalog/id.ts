@@ -159,6 +159,17 @@ export const messages = {
   'quiz.reviewTitle': 'Tinjauan',
   'quiz.reviewQuestion': 'Soal {n}',
   'quiz.bestScore': 'Terbaik: {n}/10',
+  // ---- Progress ----
+  'progress.mastered': 'Terkuasai',
+  'progress.points': '{n} / {max} poin',
+  'progress.earned': '+{n} poin',
+  'progress.earnedNone': 'Belum dapat poin — perlu minimal 9 dari 10.',
+  'progress.masteredNow': 'Bab ini sudah kamu kuasai sepenuhnya.',
+  'progress.chapterLabel': 'Penguasaan bab: {n} dari {max} poin',
+  'progress.overall': 'Penguasaan keseluruhan',
+  'progress.overallLabel': 'Penguasaan keseluruhan: {n}%',
+  'progress.xp': '{n} poin',
+
   // ---- Home ----
   'home.streak': '{n} Hari berturut-turut',
   'home.bestStreak': 'Terbaik: {n}',

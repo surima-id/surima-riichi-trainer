@@ -8,23 +8,46 @@ import { HanLesson } from './routes/Han'
 import { FuLesson } from './routes/Fu'
 import { ScoreLesson } from './routes/Score'
 import { EfficiencyLesson } from './routes/Efficiency'
-import { LANGS, LANG_LABELS, useI18n, type MessageKey } from './i18n'
+import { LANGS, LANG_LABELS, useI18n } from './i18n'
+import { CHAPTERS, CHAPTER_IDS } from './content/chapters'
+import { completionRatio, totalXp } from './store/progress'
+import { useProgress } from './store/useProgress'
+import { Meter } from './components/ui'
 
-const NAV: { to: string; key: MessageKey }[] = [
-  { to: '/tiles', key: 'nav.tiles' },
-  { to: '/shapes', key: 'nav.shapes' },
-  { to: '/yaku', key: 'nav.yaku' },
-  { to: '/han', key: 'nav.han' },
-  { to: '/fu', key: 'nav.fu' },
-  { to: '/score', key: 'nav.score' },
-  { to: '/efficiency', key: 'nav.efficiency' },
-]
+/**
+ * Course-wide mastery, for the nav.
+ *
+ * Hidden until the first points are earned: an empty bar on a first visit is a
+ * progress indicator for progress nobody has had a chance to make yet. It is also
+ * held back on small screens, where the nav already wraps to two rows.
+ */
+function MasteryChip() {
+  const { t } = useI18n()
+  const { progress } = useProgress()
+  const xp = totalXp(progress)
+  if (xp === 0) return null
+
+  const percent = Math.round(completionRatio(progress, CHAPTER_IDS) * 100)
+  return (
+    <div className="hidden items-center gap-2 sm:flex" title={t.t('progress.xp', { n: xp })}>
+      <span className="font-mono text-xs font-medium tabular-nums text-black/55 dark:text-white/55">
+        {percent}%
+      </span>
+      <Meter
+        value={percent}
+        max={100}
+        label={t.t('progress.overallLabel', { n: percent })}
+        className="h-1.5 w-16"
+      />
+    </div>
+  )
+}
 
 function LanguageToggle() {
   const { lang, setLang, t } = useI18n()
   return (
     <div
-      className="ml-auto flex overflow-hidden rounded-lg border border-black/10 dark:border-white/15"
+      className="flex overflow-hidden rounded-lg border border-black/10 dark:border-white/15"
       role="group"
       aria-label={t.t('lang.switch')}
     >
@@ -64,10 +87,10 @@ function Nav() {
           />
           {t.t('app.name')}
         </Link>
-        {NAV.map((item) => (
+        {CHAPTERS.map((item) => (
           <NavLink
-            key={item.to}
-            to={item.to}
+            key={item.path}
+            to={item.path}
             className={({ isActive }) =>
               `relative rounded-lg px-3 py-1.5 text-sm transition duration-200 ${
                 isActive
@@ -76,10 +99,13 @@ function Nav() {
               }`
             }
           >
-            {t.t(item.key)}
+            {t.t(item.navKey)}
           </NavLink>
         ))}
-        <LanguageToggle />
+        <div className="ml-auto flex items-center gap-3">
+          <MasteryChip />
+          <LanguageToggle />
+        </div>
       </div>
     </nav>
   )
