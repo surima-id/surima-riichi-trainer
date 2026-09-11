@@ -367,8 +367,8 @@ export const messages = {
   // ---- The context strip above a drill hand ----
   'context.dora': 'Dora',
   'context.doraWithUra': 'Dora / Ura',
-  'context.seatWind': 'Angin Tempat',
-  'context.roundWind': 'Angin Babak',
+  'context.seatWind': 'Angin Kursi',
+  'context.roundWind': 'Angin Ronde',
   'context.tsumo': 'Tsumo',
   'context.ron': 'Ron',
   'context.riichi': 'Riichi',
@@ -400,7 +400,7 @@ export const messages = {
   'yakuPage.situationalNote': 'Yaku ini bergantung pada bagaimana dan kapan kamu menang, bukan pada tile-nya.',
   'yakuPage.yakuhaiName': 'Yakuhai',
   'yakuPage.yakuhaiGloss': 'Tile Bernilai',
-  'yakuPage.yakuhaiNote': 'Triplet naga apa pun, atau angin tempat/putaranmu. Tiap sumber dihitung sendiri \u2014 Timur sebagai angin tempat sekaligus angin putaran bernilai 2 han.',
+  'yakuPage.yakuhaiNote': 'Triplet naga apa pun, atau angin kursi/rondemu. Tiap sumber dihitung sendiri \u2014 Timur sebagai angin kursi sekaligus angin ronde bernilai 2 han.',
   'yakuPage.example': 'Contoh',
   'yakuPage.credit': 'Susunan tangan mengikuti daftar yaku di Riichi Wiki.',
   'yakuPage.agari': 'Agari',
@@ -479,7 +479,7 @@ export const messages = {
   'lesson.yaku.p2a': 'Yaku bernilai',
   'lesson.yaku.p2han': 'han',
   'lesson.yaku.p2b': ', dan han menentukan skor. Sebagian yaku hanya tersedia untuk tangan tertutup penuh — riichi, pinfu, tujuh pasang — sementara yang lain tetap berlaku saat tangan dibuka tetapi kehilangan satu han. Referensi di bawah adalah daftar lengkap yang dihitung aplikasi ini, dibangkitkan dari aturan yang sama dengan mesin penghitungnya.',
-  'lesson.yaku.p3': 'Kamu tidak perlu menghafal semuanya. Dalam praktik, segelintir yaku menopang sebagian besar tanganmu: riichi, tanyao, yakuhai (triplet naga atau angin tempat/putaranmu), pinfu, dan tsumo. Kuasai kelima itu dulu, sisanya akan datang sendiri.',
+  'lesson.yaku.p3': 'Kamu tidak perlu menghafal semuanya. Dalam praktik, segelintir yaku menopang sebagian besar tanganmu: riichi, tanyao, yakuhai (triplet naga atau angin kursi/rondemu), pinfu, dan tsumo. Kuasai kelima itu dulu, sisanya akan datang sendiri.',
   // ---- Lesson: Han ----
   'lesson.han.subtitle': 'Jumlahkan yaku, lalu tambahkan dora.',
   'lesson.han.p1a': 'Han',
