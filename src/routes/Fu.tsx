@@ -1,6 +1,6 @@
 import { Hand } from '../components/Hand'
 import { Example, Lesson } from '../components/Lesson'
-import { Card, LineItem } from '../components/ui'
+import { Card, LessonHeading, LineItem } from '../components/ui'
 import { GENERATORS } from '../drills/generators'
 import { parseTiles } from '../engine/tiles'
 import { useT } from '../i18n'
@@ -58,9 +58,7 @@ export function FuLesson() {
         </Card>
       </div>
 
-      <h3 className="pt-2 font-semibold text-black dark:text-white">
-        {t.t('lesson.fu.h2Triplets')}
-      </h3>
+      <LessonHeading>{t.t('lesson.fu.h2Triplets')}</LessonHeading>
       <p>{t.t('lesson.fu.triplets')}</p>
 
       <div className="not-prose">
@@ -76,9 +74,7 @@ export function FuLesson() {
         {t.t('lesson.fu.ronRule2')}
       </p>
 
-      <h3 className="pt-2 font-semibold text-black dark:text-white">
-        {t.t('lesson.fu.h2Special')}
-      </h3>
+      <LessonHeading>{t.t('lesson.fu.h2Special')}</LessonHeading>
       <p>
         <strong>{t.t('lesson.fu.specialA')}</strong> {t.t('lesson.fu.specialB')}{' '}
         <strong>{t.t('lesson.fu.specialC')}</strong> {t.t('lesson.fu.specialD')}{' '}

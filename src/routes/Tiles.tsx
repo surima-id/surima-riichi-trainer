@@ -1,5 +1,6 @@
 import { Hand } from '../components/Hand'
 import { Example, Lesson, Notation } from '../components/Lesson'
+import { LessonHeading } from '../components/ui'
 import { GENERATORS } from '../drills/generators'
 import { parseTiles } from '../engine/tiles'
 import { useT } from '../i18n'
@@ -33,9 +34,7 @@ export function TilesLesson() {
         <Notation>1z</Notation> {t.t('lesson.tiles.notation3')}
       </p>
 
-      <h3 className="pt-2 font-semibold text-black dark:text-white">
-        {t.t('lesson.tiles.h2Classes')}
-      </h3>
+      <LessonHeading>{t.t('lesson.tiles.h2Classes')}</LessonHeading>
       <p>
         {t.t('lesson.tiles.classes1')} <strong>{t.t('lesson.tiles.classesSimples')}</strong>{' '}
         {t.t('lesson.tiles.classes2')}{' '}
@@ -46,9 +45,7 @@ export function TilesLesson() {
         <Hand tiles={parseTiles('19m19p19s1234567z')} size="sm" sort={false} />
       </Example>
 
-      <h3 className="pt-2 font-semibold text-black dark:text-white">
-        {t.t('lesson.tiles.h2Dora')}
-      </h3>
+      <LessonHeading>{t.t('lesson.tiles.h2Dora')}</LessonHeading>
       <p>
         {t.t('lesson.tiles.dora1')} <strong>{t.t('lesson.tiles.doraIndicator')}</strong>
         {t.t('lesson.tiles.dora2')} <em>{t.t('lesson.tiles.doraNext')}</em>{' '}

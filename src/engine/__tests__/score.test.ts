@@ -22,9 +22,22 @@ describe('basePointsFor', () => {
     expect(basePointsFor(4, 40)).toEqual({ base: 2000, limit: 'mangan' })
   })
 
-  it('does not round 4 han 30 fu up to mangan', () => {
-    // No kiriage mangan in this ruleset: 4/30 stays at 1920 base = 7700 ron.
-    expect(basePointsFor(4, 30)).toEqual({ base: 1920, limit: 'none' })
+  it('rounds 4 han 30 fu up to mangan (kiriage)', () => {
+    // Kiriage mangan: a 1920 raw base is promoted, so 4/30 pays 8000, not 7700.
+    expect(basePointsFor(4, 30)).toEqual({ base: 2000, limit: 'mangan' })
+    expect(scoreHand({ han: 4, fu: 30, dealer: false, tsumo: false }).ronPayment).toBe(8000)
+  })
+
+  it('rounds 3 han 60 fu up too, since it is the same 1920 base', () => {
+    expect(basePointsFor(3, 60)).toEqual({ base: 2000, limit: 'mangan' })
+  })
+
+  it('leaves the cells just below 1920 alone', () => {
+    // 4 han 25 fu and 3 han 50 fu are both 1600 raw — kiriage is a threshold at
+    // 1920, not a blanket round-up of everything near mangan.
+    expect(basePointsFor(4, 25)).toEqual({ base: 1600, limit: 'none' })
+    expect(basePointsFor(3, 50)).toEqual({ base: 1600, limit: 'none' })
+    expect(scoreHand({ han: 4, fu: 25, dealer: false, tsumo: false }).ronPayment).toBe(6400)
   })
 
   it('names each limit tier', () => {

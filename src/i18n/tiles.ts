@@ -13,11 +13,13 @@ import { type Lang } from './types'
 type Catalog = Record<string, string>
 
 /**
- * Both languages currently name tiles in English, because tile names are
- * terminology rather than prose — an Indonesian player says "Five of Bamboo".
- * The templates stay split anyway: they are the seam where a language that
- * *does* translate tile names would plug in, and `tile.of` being empty is what
- * makes the Indonesian ordering fall out correctly rather than a special case.
+ * Word order is a language property, which is why each language gets a template
+ * rather than the two sharing one concatenation.
+ *
+ * English puts the modifier first and joins with a connector — "Red Five of
+ * Bamboo". Indonesian puts the modifier last and has no connector, so the same
+ * tile is "Lima Bambu Merah". `tile.of` is empty in the Indonesian catalog,
+ * which is what lets `join` drop the connector without a special case here.
  */
 const TEMPLATES: Record<Lang, (d: TileDescriptor, m: Catalog) => string> = {
   en: (d, m) => {
@@ -25,12 +27,11 @@ const TEMPLATES: Record<Lang, (d: TileDescriptor, m: Catalog) => string> = {
     const name = join(m[`tile.rank.${d.rank}`], m['tile.of'], m[`tile.suit.${d.suit}`])
     return d.red ? join(m['tile.red'], name) : name
   },
-  // Were these translated, Indonesian would put the modifier last and drop the
-  // connector: "Lima Bambu Merah".
   id: (d, m) => {
     if (d.kind === 'honor') return m[`tile.honor.${d.honor}`]
     const name = join(m[`tile.rank.${d.rank}`], m['tile.of'], m[`tile.suit.${d.suit}`])
-    return d.red ? join(m['tile.red'], name) : name
+    // The modifier trails the noun it modifies: "Lima Bambu Merah".
+    return d.red ? join(name, m['tile.red']) : name
   },
 }
 

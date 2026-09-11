@@ -10,7 +10,9 @@ import { type Messages } from '../types'
 
 export const messages = {
   // ---- Language & chrome ----
-  'app.name': 'Surima',
+  'app.name': 'Surima Academy',
+  'app.site': 'surima.id',
+  'app.siteUrl': 'https://surima.id',
   'app.tagline':
     'A trainer for new riichi mahjong players. Work through the modules in order \u2014 each one teaches a piece, then quizzes you on generated hands until it sticks.',
   'lang.switch': 'Language',
@@ -22,7 +24,6 @@ export const messages = {
   'nav.fu': 'Fu',
   'nav.score': 'Score',
   'nav.efficiency': 'Efficiency',
-  'nav.sandbox': 'Sandbox',
 
   // ---- Tile naming ----
   'tile.of': 'of',
@@ -140,6 +141,10 @@ export const messages = {
 
   // ---- Quiz ----
   'quiz.practice': 'Practice',
+  'quiz.clue': 'Clue',
+  'quiz.clueHide': 'Hide clue',
+  'quiz.clueTitle': 'From the lesson',
+  'quiz.exit': 'Back to the lesson',
   'quiz.progress': 'Question {n} of {total}',
   'quiz.check': 'Check answer',
   'quiz.next': 'Next question',
@@ -168,13 +173,12 @@ export const messages = {
   'home.reset': 'Reset progress',
   'home.read': 'Read',
   'home.accuracy': 'Your accuracy',
-  'home.sandbox': 'Sandbox',
-  'home.sandboxBlurb': 'Score any hand you like and see the full breakdown.',
   'home.credit':
     'Tile artwork from FluffyStuff/riichi-mahjong-tiles, released into the public domain (CC0).',
   'home.ruleset':
-    'Scoring follows the Tenhou / Riichi City standard: red fives on, open all-simples allowed, no rounded mangan, counted yakuman at 13 han.',
+    'Scoring follows the Tenhou / MJS / RC standard: red fives on, open all-simples allowed, kiriage mangan on (4 han 30 fu rounds up to 8000), counted yakuman at 13 han.',
   'home.privacy': 'Progress is stored in this browser only, and never leaves it.',
+  'home.siteLink': 'More from Surima at {site}',
 
   // ---- Modules ----
   'module.tiles.title': 'Learning the Tiles',
@@ -236,6 +240,48 @@ export const messages = {
   'yaku.honitsu': 'Half Flush',
   'yaku.chinitsu': 'Full Flush',
 
+
+  // ---- Yaku descriptions ----
+  // One line per yaku for the reference page: what the shape actually is,
+  // in the terms a player would use to spot it at the table.
+  'yakuDesc.riichi': 'Declare a closed, ready hand and place a 1000-point stick. The hand is locked: every draw you do not win with must be discarded.',
+  'yakuDesc.double-riichi': 'Riichi declared on your very first discard, with no call having interrupted the turn order.',
+  'yakuDesc.ippatsu': 'Win within one go-around of declaring riichi, before your next discard and with no call in between.',
+  'yakuDesc.menzen-tsumo': 'Self-draw the winning tile on a fully closed hand.',
+  'yakuDesc.haitei': 'Win by self-drawing the very last tile of the wall.',
+  'yakuDesc.houtei': 'Win on the final discard of the hand, after the wall is exhausted.',
+  'yakuDesc.rinshan': 'Win on the replacement tile drawn after declaring a kan.',
+  'yakuDesc.chankan': 'Win on the tile another player adds to an open triplet to upgrade it to a kan.',
+  'yakuDesc.pinfu': 'No fu beyond the base twenty: four runs, a pair worth nothing, and a two-sided wait. Closed hands only.',
+  'yakuDesc.tanyao': 'No terminals and no honors anywhere in the hand \u2014 only the 2 through 8 of the three suits.',
+  'yakuDesc.iipeiko': 'Two identical runs in the same suit. Closed only, since a claimed run breaks the symmetry.',
+  'yakuDesc.chiitoitsu': 'Seven distinct pairs instead of four sets and a pair. Always 25 fu, and closed only.',
+  'yakuDesc.sanshoku': 'The same run in all three suits \u2014 234m, 234p and 234s.',
+  'yakuDesc.ittsuu': '123, 456 and 789 in one suit: the full nine-tile run.',
+  'yakuDesc.chanta': 'Every set and the pair contains a terminal or an honor.',
+  'yakuDesc.junchan': 'Every set and the pair contains a terminal, with no honors at all \u2014 the stricter form of chanta.',
+  'yakuDesc.toitoi': 'Four triplets and a pair, with no runs. The triplets may be open.',
+  'yakuDesc.sanankou': 'Three triplets completed without claiming a discard. A triplet finished by ron counts as open.',
+  'yakuDesc.sankantsu': 'Three kans in one hand, open or closed.',
+  'yakuDesc.sanshoku-doukou': 'The same numbered triplet in all three suits \u2014 333m, 333p and 333s.',
+  'yakuDesc.shousangen': 'Two dragon triplets plus a pair of the third. The two triplets are yakuhai as well, so this is 4 han in practice.',
+  'yakuDesc.honroutou': 'Nothing but terminals and honors. It always accompanies either toitoi or seven pairs.',
+  'yakuDesc.ryanpeikou': 'Two separate pairs of identical runs \u2014 iipeiko twice over. Closed only.',
+  'yakuDesc.honitsu': 'One suit plus honors, and nothing else.',
+  'yakuDesc.chinitsu': 'A single suit, with no honors at all.',
+  'yakuDesc.kokushi': 'One of each of the thirteen terminals and honors, plus a second copy of any one of them. Closed only.',
+  'yakuDesc.suuankou': 'Four triplets, every one completed without claiming a discard.',
+  'yakuDesc.daisangen': 'Triplets of all three dragons.',
+  'yakuDesc.shousuushii': 'Three wind triplets plus a pair of the fourth.',
+  'yakuDesc.daisuushii': 'Triplets of all four winds.',
+  'yakuDesc.tsuuiisou': 'Every tile an honor \u2014 winds and dragons only.',
+  'yakuDesc.chinroutou': 'Every tile a terminal: nothing but 1s and 9s.',
+  'yakuDesc.ryuuiisou': 'Only green tiles: the 2, 3, 4, 6 and 8 of bamboo, and the Green Dragon.',
+  'yakuDesc.chuuren': '1112345678999 in one suit, plus any one extra tile of it. Closed only.',
+  'yakuDesc.suukantsu': 'Four kans in a single hand.',
+  'yakuDesc.tenhou': 'The dealer wins on the opening draw, before anyone has discarded.',
+  'yakuDesc.chiihou': 'A non-dealer wins on their first draw, with no call having interrupted the turn order.',
+
   // ---- Drills ----
   'drill.tiles.name.title': 'Name the tile',
   'drill.tiles.name.desc': 'Read a tile at a glance.',
@@ -289,8 +335,18 @@ export const messages = {
 
   'drill.score.total.title': 'What does it pay?',
   'drill.score.total.desc': 'Turn han and fu into points.',
-  'drill.score.total.prompt': 'How many points does the winner collect?',
-  'drill.score.total.hint': '{han} han, {fu} fu.',
+  'drill.score.total.prompt': 'How many points is this hand worth?',
+  'drill.score.total.hintRon': 'Ron — enter the single payment the discarder makes.',
+  'drill.score.total.hintTsumoNonDealer':
+    'Tsumo — enter what each non-dealer pays, then what the dealer pays.',
+  'drill.score.total.hintTsumoDealer': 'Tsumo — every opponent pays the same. Enter that amount.',
+  'drill.score.total.fieldRon': 'Payment',
+  'drill.score.total.fieldEach': 'Each non-dealer',
+  'drill.score.total.fieldDealer': 'Dealer',
+  'drill.score.total.fieldAll': 'Each opponent',
+  'drill.score.total.shorthand': 'Trailing zeros may be left off — 2000 can be typed as 2.',
+  'drill.score.total.dora': 'Dora indicator',
+  'drill.score.total.yourAnswer': 'You answered {answer}; the hand pays {correct}.',
 
   'drill.efficiency.discard.title': 'Choose the discard',
   'drill.efficiency.discard.desc': 'Keep the tiles that accept the most.',
@@ -305,6 +361,16 @@ export const messages = {
   'drill.efficiency.discard.rowReady': 'ready',
   'drill.efficiency.discard.rowAway': '{n} away',
 
+  // ---- The context strip above a drill hand ----
+  'context.dora': 'Dora',
+  'context.seatWind': 'Seat Wind',
+  'context.roundWind': 'Prevailing Wind',
+  'context.tsumo': 'Tsumo',
+  'context.ron': 'Ron',
+  'context.riichi': 'Riichi',
+  'context.ippatsu': 'Ippatsu',
+  'context.dealer': 'Dealer',
+
   // ---- Context facts shown beside a drill hand ----
   'fact.seat': '{wind} seat',
   'fact.round': '{wind} round',
@@ -312,25 +378,11 @@ export const messages = {
   'fact.ron': 'Ron (Won on a discard)',
   'fact.closed': 'Closed hand',
   'fact.open': 'Open hand',
+  'fact.riichi': 'Riichi (Declared)',
+  'fact.doubleRiichi': 'Double Riichi (Declared)',
+  'fact.ippatsu': 'Ippatsu (One-Shot)',
   'fact.dealer': 'Dealer',
   'fact.nonDealer': 'Non-dealer',
-
-  // ---- Sandbox ----
-  'sandbox.title': 'Sandbox',
-  'sandbox.subtitle': 'Score any hand and see exactly where every han and fu came from.',
-  'sandbox.hand': 'Hand (14 tiles, including the winning tile)',
-  'sandbox.winTile': 'Winning tile',
-  'sandbox.dora': 'Dora indicators (optional)',
-  'sandbox.seatWind': 'Seat wind',
-  'sandbox.roundWind': 'Round wind',
-  'sandbox.tsumo': 'Tsumo (Self-draw)',
-  'sandbox.riichi': 'Riichi',
-  'sandbox.handSection': 'Hand',
-  'sandbox.preset.pinfu': 'Pinfu',
-  'sandbox.preset.chiitoi': 'Seven pairs',
-  'sandbox.preset.kokushi': 'Thirteen orphans',
-  'sandbox.preset.tanyao': 'All simples',
-  'sandbox.preset.chinitsu': 'Full flush',
 
   // ---- Yaku page ----
   'yakuPage.filterAll': 'All',
@@ -348,6 +400,11 @@ export const messages = {
   'yakuPage.yakuhaiGloss': 'Value Tiles',
   'yakuPage.yakuhaiNote': 'A triplet of any dragon, or of your seat or round wind. Each source counts on its own \u2014 East as both your seat and the round wind is worth 2 han.',
   'yakuPage.example': 'Example',
+  'yakuPage.credit': 'Hand compositions follow the list of yaku on Riichi Wiki.',
+  'yakuPage.agari': 'Agari',
+  'yakuPage.agariHint': 'The winning tile is set apart on the right.',
+  'yakuPage.openHint': 'A sideways tile marks a set claimed from a discard, so that set is open.',
+  'yakuPage.concealedHint': 'Face-down tiles are the rest of the hand — any tiles that complete it.',
   'yakuPage.notAvailable': '\u2014',
 
   // ---- Lesson: Tiles ----
@@ -361,7 +418,7 @@ export const messages = {
   'lesson.tiles.notation1': 'Written down, a hand uses digits followed by a suit letter:',
   'lesson.tiles.notation2': 'is the 1, 2 and 3 of characters, and',
   'lesson.tiles.notation3':
-    'is East. You will see this notation throughout the app, and you can type it into the sandbox.',
+    'is East. You will see this notation throughout the app, including in the answer to every drill.',
   'lesson.tiles.h2Classes': 'Two classes that matter',
   'lesson.tiles.classes1': 'Almost every scoring rule cares about one split:',
   'lesson.tiles.classesSimples': 'simples',
@@ -505,6 +562,14 @@ export const messages = {
   'lesson.score.p3mangan': 'mangan',
   'lesson.score.p3b':
     'and stops there. That is why counting fu becomes pointless at 5 han: the formula has already been capped.',
+  'lesson.score.h2Kiriage': 'Rounded mangan',
+  'lesson.score.kiriage1': 'This app uses',
+  'lesson.score.kiriageTerm': 'kiriage mangan',
+  'lesson.score.kiriage2':
+    ', the rounded-mangan rule. Two cells fall just short of the cap — 4 han 30 fu and 3 han 60 fu both compute to a base of 1920, a hair under 2000 — and this rule promotes them to a full mangan. So both pay 8000 to a non-dealer rather than 7700, and there is one less awkward number to remember.',
+  'lesson.score.kiriage3':
+    'Nothing else moves. 4 han 25 fu and 3 han 50 fu sit at a base of 1600, well below the line, and pay the formula as written.',
+
   'lesson.score.h2Limits': 'The limits',
   'lesson.score.limits':
     'Above mangan the value steps in named tiers rather than continuing the formula: haneman at 6–7 han (1.5× mangan), baiman at 8–10 (2×), sanbaiman at 11–12 (3×), and a counted yakuman at 13 or more (4×). A true yakuman — thirteen orphans, four concealed triplets — pays 32000 to a non-dealer and 48000 to a dealer.',
@@ -518,7 +583,7 @@ export const messages = {
   'lesson.score.tableFu': '{n} fu',
   'lesson.score.tableManganRow': '{payment} — mangan, fu no longer matters',
   'lesson.score.closing':
-    'Most players learn the common cells by heart rather than doing the arithmetic: 1000, 2000, 3900, 7700 for a non-dealer; 1500, 2900, 5800, 11600 for a dealer. Those cover the majority of hands you will actually score.',
+    'Most players learn the common cells by heart rather than doing the arithmetic: 1000, 2000, 3900, 8000 for a non-dealer; 1500, 2900, 5800, 12000 for a dealer. Those cover the majority of hands you will actually score — and with rounded mangan on, the top of that ladder is simply the mangan itself.',
 
   // ---- Lesson: Efficiency ----
   'lesson.efficiency.subtitle': 'Which tile to throw — the decision you make every single turn.',

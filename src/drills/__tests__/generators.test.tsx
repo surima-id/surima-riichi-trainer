@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { ALL_GENERATORS } from '../generators'
 import { type Question } from '../types'
 import { LANGS, createTranslator } from '../../i18n'
+import { NORTH } from '../../engine/tiles'
 
 /**
  * Generators run in the browser, but they are pure functions of `(seed, t)`, so
@@ -23,6 +24,8 @@ function hasAnswer(q: Question): boolean {
       return typeof q.answer === 'number' && Number.isFinite(q.answer)
     case 'tile-select':
       return (q.correctIndices ?? []).length > 0
+    case 'payment':
+      return q.payment !== undefined
   }
 }
 
@@ -83,7 +86,23 @@ describe.each(ALL_GENERATORS.map((g) => [g.id, g] as const))('%s', (_id, generat
       )
       expect(a.answer, `seed ${seed}`).toBe(b.answer)
       expect(a.correctIndices, `seed ${seed}`).toEqual(b.correctIndices)
+      expect(a.payment, `seed ${seed}`).toEqual(b.payment)
       expect(a.tiles, `seed ${seed}`).toEqual(b.tiles)
+    }
+  })
+
+  /**
+   * North is a seat but never a round. A "North round" would make a North
+   * triplet yakuhai, which is a judgement no player ever has to make.
+   */
+  it('never poses a North round', () => {
+    const t = createTranslator('en')
+    const north = createTranslator('en').tile(NORTH)
+    for (const seed of SEEDS) {
+      const q = generator.generate(seed, t)
+      const round = q.context?.roundWind
+      if (round === undefined) continue
+      expect(t.tile(round), `seed ${seed} used ${north} as the round wind`).not.toBe(north)
     }
   })
 

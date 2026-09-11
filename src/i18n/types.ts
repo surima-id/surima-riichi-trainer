@@ -22,22 +22,24 @@ export type Params = Record<string, string | number>
 /**
  * Keys whose value is mahjong terminology rather than prose.
  *
- * These read identically in every language: an Indonesian player says "Five of
- * Bamboo", "Two-sided wait" and "Mangan", so translating them would make the
- * Bahasa version harder to read, not easier. Only the surrounding explanation
- * is translated.
+ * These read identically in every language: a player says "Mangan" and
+ * "Tanyao" whichever language surrounds them, so translating them would make
+ * the Bahasa version harder to read, not easier. Only the surrounding
+ * explanation is translated.
  *
  * A test asserts every catalog agrees on these, so a well-meaning translation
  * of one of them cannot slip in unnoticed.
+ *
+ * Tile names are deliberately *not* here. A rank, a suit and an honor are
+ * ordinary nouns rather than jargon — an Indonesian player reads "Lima Bambu",
+ * not "Five of Bamboo" — and a separate test asserts the two languages name
+ * every tile differently.
  */
 export const TERM_KEY_PREFIXES = [
   'yaku.',
   'wait.',
   'limit.',
   'fact.',
-  'tile.rank.',
-  'tile.suit.',
-  'tile.honor.',
   'fu.meld.',
   'fu.source.',
   // The fu lesson's table rows are the same labels the scorer's breakdown

@@ -10,7 +10,14 @@ import { type FuItem } from '../engine/fu'
 import { type InvalidReason } from '../engine/explain'
 import { type WaitType } from '../engine/parse'
 import { type LimitName, type Payment } from '../engine/score'
-import { type NotationError, type Suit, type Tile, describeTile } from '../engine/tiles'
+import {
+  type NotationError,
+  type Suit,
+  type Tile,
+  describeTile,
+  formatTiles,
+  suitOf,
+} from '../engine/tiles'
 import { type YakuId } from '../engine/yaku'
 import { messages as idMessages } from './catalog/id'
 import { messages as enMessages } from './catalog/en'
@@ -39,6 +46,7 @@ export interface Translator {
   notationError(error: NotationError): string
   han(n: number): string
   fu(n: number): string
+  notation(tiles: Tile[]): string
 }
 
 export function createTranslator(lang: Lang): Translator {
@@ -46,6 +54,40 @@ export function createTranslator(lang: Lang): Translator {
   const t = (key: MessageKey, params?: Params) => interpolate(m[key as string] ?? String(key), params)
 
   const tile = (value: Tile) => nameTile(lang, describeTile(value), m)
+
+  /**
+   * Hand notation for display, with the honors spelled out.
+   *
+   * The engine's `formatTiles` emits strict notation — `1z` for East, `5z` for
+   * the White Dragon — which is the right thing for a parser and the wrong
+   * thing for a beginner, who has no way to know that 5z is white rather than,
+   * say, the fifth wind. Numbered suits keep their compact form because the
+   * digit *is* the tile ("3m" is the three of characters, plainly), but the
+   * honors are named.
+   *
+   * Display-only. Anything compared, graded or re-parsed keeps using
+   * `formatTiles`, which is stable and language-independent.
+   */
+  const notation = (tiles: Tile[]): string => {
+    const parts: string[] = []
+    let run: Tile[] = []
+
+    const flush = () => {
+      if (run.length > 0) parts.push(formatTiles(run))
+      run = []
+    }
+
+    for (const value of tiles) {
+      if (suitOf(value) === 'z') {
+        flush()
+        parts.push(tile(value))
+      } else {
+        run.push(value)
+      }
+    }
+    flush()
+    return parts.join(' ')
+  }
 
   return {
     lang,
@@ -60,6 +102,7 @@ export function createTranslator(lang: Lang): Translator {
     notationError: (error) => interpolate(m[`error.${error.code}`], error.params),
     han: (n) => t('unit.han', { n }),
     fu: (n) => t('unit.fu', { n }),
+    notation,
 
     payment: (payment) => {
       switch (payment.kind) {

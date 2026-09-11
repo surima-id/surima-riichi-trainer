@@ -1,5 +1,6 @@
 import { Hand } from '../components/Hand'
 import { Example, Lesson } from '../components/Lesson'
+import { LessonHeading } from '../components/ui'
 import { GENERATORS } from '../drills/generators'
 import { parseTiles } from '../engine/tiles'
 import { useT } from '../i18n'
@@ -27,7 +28,7 @@ export function HanLesson() {
         {t.t('lesson.han.p2c')}
       </p>
 
-      <h3 className="pt-2 font-semibold text-black dark:text-white">{t.t('lesson.han.h2Open')}</h3>
+      <LessonHeading>{t.t('lesson.han.h2Open')}</LessonHeading>
       <p>{t.t('lesson.han.open')}</p>
 
       <Example title={t.t('lesson.han.exClosed')}>
@@ -36,7 +37,7 @@ export function HanLesson() {
 
       <p>{t.t('lesson.han.exNote')}</p>
 
-      <h3 className="pt-2 font-semibold text-black dark:text-white">{t.t('lesson.han.h2Stops')}</h3>
+      <LessonHeading>{t.t('lesson.han.h2Stops')}</LessonHeading>
       <p>
         {t.t('lesson.han.stops1')} <strong>{t.t('lesson.han.stopsMangan')}</strong>{' '}
         {t.t('lesson.han.stops2')}

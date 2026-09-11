@@ -8,7 +8,7 @@
 import { type ScoredHand } from '../engine/explain'
 import { paymentOf } from '../engine/score'
 import { useT } from '../i18n'
-import { Badge, LineItem, SectionTitle } from './ui'
+import { LineItem, SectionTitle, stagger } from './ui'
 
 export function Breakdown({ scored, dealer }: { scored: ScoredHand; dealer: boolean }) {
   const t = useT()
@@ -29,9 +29,10 @@ export function Breakdown({ scored, dealer }: { scored: ScoredHand; dealer: bool
       <section>
         <SectionTitle>{t.t('breakdown.yaku')}</SectionTitle>
         <div>
-          {yaku.map((y) => (
+          {yaku.map((y, i) => (
             <LineItem
               key={y.id}
+              style={stagger(i)}
               label={t.romaji(y.id)}
               detail={t.yaku(y.id)}
               value={
@@ -66,7 +67,15 @@ export function Breakdown({ scored, dealer }: { scored: ScoredHand; dealer: bool
           <div>
             {fu.items.map((item, i) => {
               const { label, detail } = t.fuItem(item)
-              return <LineItem key={i} label={label} detail={detail} value={t.fu(item.fu)} />
+              return (
+                <LineItem
+                  key={i}
+                  style={stagger(i)}
+                  label={label}
+                  detail={detail}
+                  value={t.fu(item.fu)}
+                />
+              )
             })}
           </div>
           <p className="mt-2 text-sm text-black/60 dark:text-white/60">
@@ -109,9 +118,13 @@ export function Breakdown({ scored, dealer }: { scored: ScoredHand; dealer: bool
             <LineItem label={t.t('breakdown.riichiSticks')} value={`+${score.riichiBonus}`} />
           )}
         </div>
-        <p className="mt-3 flex items-center gap-2 text-sm">
+        <p className="mt-4 flex flex-wrap items-center gap-2.5">
           <span className="text-black/60 dark:text-white/60">{t.t('breakdown.youCollect')}</span>
-          <Badge tone="good">{t.t('unit.points', { n: score.total })}</Badge>
+          {/* The payout is the answer the whole breakdown was building to, so it
+              is set larger than the rows above it and pops in on arrival. */}
+          <span className="anim-pop rounded-xl bg-emerald-500/15 px-3 py-1.5 font-mono text-lg font-bold tabular-nums text-emerald-700 dark:text-emerald-300">
+            {t.t('unit.points', { n: score.total })}
+          </span>
         </p>
       </section>
     </div>

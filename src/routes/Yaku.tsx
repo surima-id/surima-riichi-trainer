@@ -10,12 +10,12 @@
 import { useMemo, useState } from 'react'
 import { Hand } from '../components/Hand'
 import { Lesson } from '../components/Lesson'
-import { Badge, Card } from '../components/ui'
+import { Badge, Card, stagger } from '../components/ui'
 import { YAKU_SAMPLES } from '../content/yakuSamples'
 import { GENERATORS } from '../drills/generators'
 import { parseTiles } from '../engine/tiles'
 import { YAKU_LIST, type YakuId } from '../engine/yaku'
-import { useT } from '../i18n'
+import { useT, type MessageKey } from '../i18n'
 
 type Filter = 'all' | 'closed' | 'open' | 'yakuman'
 
@@ -41,6 +41,23 @@ const SITUATIONAL = new Set<YakuId>([
   'rinshan',
   'chankan',
 ])
+
+/**
+ * Yaku that show no example hand.
+ *
+ * These are defined by *when* you won rather than by what you held, so every
+ * sample is the same filler hand — riichi, ippatsu and haitei would each print
+ * an identical 234m567m22p345678s that illustrates nothing and invites the
+ * reader to hunt for a pattern that is not there. Tenhou and chiihou are the
+ * same case wearing a yakuman's badge: the shape is irrelevant, only the timing
+ * of the draw matters.
+ *
+ * Kept separate from `SITUATIONAL` above, which decides *grouping*. The two
+ * lists agree except for those yakuman, and merging them would file tenhou
+ * under "situational" rather than among the yakuman, where a reader looks for
+ * it.
+ */
+const NO_SAMPLE = new Set<YakuId>([...SITUATIONAL, 'tenhou', 'chiihou'])
 
 type Entry = (typeof YAKU_LIST)[number]
 
@@ -94,7 +111,7 @@ function YakuhaiCard() {
       <div className="flex flex-wrap gap-x-5 gap-y-3">
         {YAKUHAI_IDS.map((id) => (
           <div key={id}>
-            <p className="mb-1 text-xs text-black/50 dark:text-white/50">
+            <p className="mb-1.5 text-xs font-medium text-black/60 dark:text-white/60">
               {t.romaji(id)} <span className="text-black/35 dark:text-white/35">({t.yaku(id)})</span>
             </p>
             <Hand tiles={parseTiles(TRIPLETS[id])} size="xs" sort={false} />
@@ -120,10 +137,25 @@ function YakuCard({ entry }: { entry: Entry }) {
   const tiles = useMemo(() => parseTiles(sample.hand), [sample.hand])
   const winTile = useMemo(() => parseTiles(sample.win)[0], [sample.win])
 
+  const showsHand = !NO_SAMPLE.has(entry.id)
+
+  /**
+   * The tiles that carry the yaku, or undefined when the whole hand does.
+   *
+   * `Hand` turns everything else face-down, so a reader sees `223344m` and four
+   * tile backs rather than a full fourteen-tile hand with the double run buried
+   * in it. The filler still has to exist — the sample is run through the real
+   * detector — it just does not have to be read.
+   */
+  const defining = useMemo(
+    () => (sample.defining ? parseTiles(sample.defining) : undefined),
+    [sample.defining],
+  )
+
   return (
-    <div className="border-b border-black/5 py-4 last:border-0 dark:border-white/5">
-      <div className="mb-2 flex flex-wrap items-baseline gap-x-2 gap-y-1">
-        <h4 className="font-semibold">{t.romaji(entry.id)}</h4>
+    <div className="-mx-2 rounded-xl border-b border-black/5 px-2 py-4 transition-colors last:border-0 hover:bg-black/[0.02] dark:border-white/5 dark:hover:bg-white/[0.03]">
+      <div className="mb-2.5 flex flex-wrap items-baseline gap-x-2.5 gap-y-1">
+        <h4 className="text-lg font-semibold tracking-tight">{t.romaji(entry.id)}</h4>
         <span className="text-sm text-black/55 dark:text-white/55">({t.yaku(entry.id)})</span>
         <span className="ml-auto flex gap-1.5">
           {entry.yakuman > 0 ? (
@@ -148,9 +180,24 @@ function YakuCard({ entry }: { entry: Entry }) {
           )}
         </span>
       </div>
-      <div className="overflow-x-auto">
-        <Hand tiles={tiles} calls={sample.calls} winTile={winTile} size="xs" />
-      </div>
+      <p className="mb-3 text-sm leading-relaxed text-black/65 dark:text-white/65">
+        {t.t(`yakuDesc.${entry.id}` as MessageKey)}
+      </p>
+      {showsHand && (
+        <div>
+          <Hand
+            tiles={tiles}
+            calls={sample.calls}
+            // Most yaku are a composition, so the winning tile stays in the row
+            // rather than being drawn apart; only the samples where the agari is
+            // part of the claim pull it out and label it.
+            winTile={sample.showAgari ? winTile : undefined}
+            size="xs"
+            showAgari={sample.showAgari}
+            revealFaces={defining}
+          />
+        </div>
+      )}
     </div>
   )
 }
@@ -224,10 +271,10 @@ function YakuReference() {
             type="button"
             onClick={() => setFilter(f.id)}
             aria-pressed={filter === f.id}
-            className={`rounded-lg px-3 py-1.5 text-sm transition ${
+            className={`rounded-xl px-3.5 py-2 text-sm font-medium transition duration-200 ${
               filter === f.id
-                ? 'bg-felt-700 text-white dark:bg-felt-100 dark:text-felt-900'
-                : 'bg-black/5 text-black/70 hover:bg-black/10 dark:bg-white/10 dark:text-white/70 dark:hover:bg-white/15'
+                ? 'bg-felt-700 text-white shadow-sm dark:bg-felt-100 dark:text-felt-900'
+                : 'bg-black/5 text-black/70 hover:-translate-y-0.5 hover:bg-black/10 dark:bg-white/10 dark:text-white/70 dark:hover:bg-white/15'
             }`}
           >
             {t.t(f.key)}
@@ -235,8 +282,8 @@ function YakuReference() {
         ))}
       </div>
 
-      {groups.map((group) => (
-        <section key={group.id}>
+      {groups.map((group, i) => (
+        <section key={group.id} className="anim-fade-up" style={stagger(i, 50)}>
           <h3 className="mb-2 text-sm font-semibold uppercase tracking-wide text-black/45 dark:text-white/45">
             {group.title}
           </h3>
@@ -254,6 +301,17 @@ function YakuReference() {
           </Card>
         </section>
       ))}
+
+      <p className="pt-2 text-xs text-black/45 dark:text-white/45">
+        <a
+          href="https://riichi.wiki/List_of_yaku"
+          className="underline underline-offset-2 transition hover:text-black dark:hover:text-white"
+          target="_blank"
+          rel="noreferrer"
+        >
+          {t.t('yakuPage.credit')}
+        </a>
+      </p>
     </div>
   )
 }

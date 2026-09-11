@@ -5,12 +5,18 @@
  * order is the pedagogy: you cannot count fu before you can read a hand.
  */
 
+import { type CSSProperties } from 'react'
 import { Link } from 'react-router-dom'
-import { Badge, Button, Card } from '../components/ui'
+import { Tile } from '../components/Tile'
+import { Badge, Button, Card, SectionTitle, stagger } from '../components/ui'
 import { ALL_GENERATORS } from '../drills/generators'
+import { parseTiles } from '../engine/tiles'
 import { useT, type MessageKey } from '../i18n'
 import { accuracy, weakestDrills } from '../store/progress'
 import { useProgress } from '../store/useProgress'
+
+/** One tile from each suit, for the decorative drift behind the wordmark. */
+const HERO_TILES = parseTiles('1s5p7m')
 
 const MODULES = [
   { id: 'tiles', path: '/tiles' },
@@ -38,16 +44,45 @@ export function Home() {
   const read = new Set(progress.completedLessons)
 
   return (
-    <div className="mx-auto max-w-4xl space-y-8 px-4 py-10 sm:px-6">
-      <header>
-        <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">{t.t('app.name')}</h1>
-        <p className="mt-2 max-w-2xl text-black/65 dark:text-white/65">{t.t('app.tagline')}</p>
+    <div className="mx-auto max-w-5xl space-y-10 px-4 py-12 sm:px-6">
+      {/* The hero. Three tiles drift behind the wordmark at low opacity — enough
+          to say "mahjong" before the tagline does, faint enough not to compete
+          with it for attention. */}
+      <header className="anim-fade-up relative isolate">
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute -top-6 right-0 -z-10 hidden gap-2 opacity-[0.18] sm:flex dark:opacity-[0.13]"
+        >
+          {HERO_TILES.map((tile, i) => (
+            <span
+              key={tile}
+              className="anim-float"
+              style={{ '--stagger': `${i * 900}ms`, '--float-tilt': `${(i - 1) * 7}deg` } as CSSProperties}
+            >
+              <Tile tile={tile} size="lg" />
+            </span>
+          ))}
+        </div>
+
+        <h1 className="text-5xl font-extrabold tracking-tighter">
+          <span className="bg-gradient-to-br from-felt-800 via-felt-600 to-felt-400 bg-clip-text text-transparent dark:from-white dark:via-felt-100 dark:to-gold-300">
+            {t.t('app.name')}
+          </span>
+        </h1>
+        <p className="mt-3 max-w-2xl text-lg leading-relaxed text-black/65 dark:text-white/65">
+          {t.t('app.tagline')}
+        </p>
       </header>
 
       {progress.streak.current > 0 && (
-        <Card>
+        <Card className="anim-fade-up" style={stagger(1, 90)}>
           <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
-            <span>{t.t('home.streak', { n: progress.streak.current })}</span>
+            <span className="flex items-center gap-2 font-semibold">
+              <span aria-hidden="true" className="anim-glow text-lg leading-none text-gold-500">
+                ●
+              </span>
+              {t.t('home.streak', { n: progress.streak.current })}
+            </span>
             <span className="text-black/55 dark:text-white/55">
               {t.t('home.bestStreak', { n: progress.streak.best })}
             </span>
@@ -63,15 +98,22 @@ export function Home() {
         </Card>
       )}
 
-      <div className="grid gap-3 sm:grid-cols-2">
+      <div className="grid gap-3.5 sm:grid-cols-2">
         {MODULES.map((module, index) => (
-          <Link key={module.id} to={module.path} className="group">
-            <Card className="h-full transition group-hover:border-felt-700/30 group-hover:shadow-md dark:group-hover:border-white/25">
-              <div className="mb-1 flex items-center gap-2">
-                <span className="font-mono text-xs text-black/35 dark:text-white/35">
+          <Link
+            key={module.id}
+            to={module.path}
+            className="group anim-fade-up"
+            style={stagger(index + 2, 55)}
+          >
+            <Card className="sheen sheen-hover relative h-full overflow-hidden group-hover:-translate-y-1 group-hover:border-felt-700/30 group-hover:shadow-lg dark:group-hover:border-white/25">
+              <div className="mb-1.5 flex items-center gap-2.5">
+                {/* The step number in gold: the modules are a ladder, and the
+                    order is the pedagogy, so it is worth making legible. */}
+                <span className="font-mono text-sm font-bold text-gold-500 dark:text-gold-400">
                   {String(index + 1).padStart(2, '0')}
                 </span>
-                <h2 className="font-semibold">
+                <h2 className="text-lg font-semibold tracking-tight">
                   {t.t(`module.${module.id}.title` as MessageKey)}
                 </h2>
                 {read.has(module.id) && <Badge tone="good">{t.t('home.read')}</Badge>}
@@ -83,30 +125,33 @@ export function Home() {
           </Link>
         ))}
 
-        <Link to="/sandbox" className="group">
-          <Card className="h-full transition group-hover:border-felt-700/30 group-hover:shadow-md dark:group-hover:border-white/25">
-            <div className="mb-1 flex items-center gap-2">
-              <span className="font-mono text-xs text-black/35 dark:text-white/35">••</span>
-              <h2 className="font-semibold">{t.t('home.sandbox')}</h2>
-            </div>
-            <p className="text-sm text-black/60 dark:text-white/60">{t.t('home.sandboxBlurb')}</p>
-          </Card>
-        </Link>
       </div>
 
       {Object.keys(progress.drills).length > 0 && (
-        <section>
-          <h2 className="mb-3 text-lg font-semibold tracking-tight">{t.t('home.accuracy')}</h2>
+        <section className="anim-fade-up" style={stagger(MODULES.length + 3, 55)}>
+          <SectionTitle>{t.t('home.accuracy')}</SectionTitle>
           <Card>
-            {Object.entries(progress.drills).map(([id, stats]) => {
+            {Object.entries(progress.drills).map(([id, stats], i) => {
               const rate = accuracy(stats)
               return (
                 <div
                   key={id}
-                  className="flex items-center justify-between gap-4 border-b border-dashed border-black/10 py-2 last:border-0 dark:border-white/10"
+                  className="anim-fade-up flex items-center gap-4 border-b border-dashed border-black/10 py-2.5 last:border-0 dark:border-white/10"
+                  style={stagger(i, 45)}
                 >
                   <span className="text-sm">{drillName(id)}</span>
-                  <span className="font-mono text-sm tabular-nums text-black/60 dark:text-white/60">
+                  {/* A bar as well as a number: a list of percentages is a table
+                      to read, whereas the bars are a shape to glance at. */}
+                  <span
+                    aria-hidden="true"
+                    className="ml-auto hidden h-1.5 w-24 shrink-0 overflow-hidden rounded-full bg-black/10 sm:block dark:bg-white/15"
+                  >
+                    <span
+                      className="block h-full rounded-full bg-gradient-to-r from-felt-600 to-felt-400 transition-[width] duration-700 ease-out dark:from-gold-400 dark:to-gold-300"
+                      style={{ width: `${Math.round((rate ?? 0) * 100)}%` }}
+                    />
+                  </span>
+                  <span className="ml-auto shrink-0 font-mono text-sm font-medium tabular-nums text-black/60 sm:ml-0 dark:text-white/60">
                     {rate === null ? '—' : `${Math.round(rate * 100)}%`} ({stats.correct}/
                     {stats.attempts})
                   </span>
@@ -117,7 +162,7 @@ export function Home() {
         </section>
       )}
 
-      <footer className="border-t border-black/10 pt-6 text-sm text-black/50 dark:border-white/10 dark:text-white/50">
+      <footer className="border-t border-black/10 pt-6 text-xs text-black/50 dark:border-white/10 dark:text-white/50">
         <p>
           <a
             href="https://github.com/FluffyStuff/riichi-mahjong-tiles"
@@ -130,6 +175,16 @@ export function Home() {
         </p>
         <p className="mt-1">{t.t('home.ruleset')}</p>
         <p className="mt-1">{t.t('home.privacy')}</p>
+        <p className="mt-1">
+          <a
+            href={t.t('app.siteUrl')}
+            className="underline underline-offset-2 transition hover:text-black dark:hover:text-white"
+            target="_blank"
+            rel="noreferrer"
+          >
+            {t.t('home.siteLink', { site: t.t('app.site') })}
+          </a>
+        </p>
       </footer>
     </div>
   )

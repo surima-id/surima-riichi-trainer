@@ -1,4 +1,4 @@
-# Surima — Riichi Mahjong Trainer
+# Surima Academy — Riichi Mahjong Trainer
 
 A web trainer for new riichi mahjong players, in the spirit of Riichi City's
 in-app Academy. It teaches the ladder every beginner has to climb — read tiles →
@@ -74,9 +74,13 @@ speak.
 
 ## Ruleset
 
-Tenhou / Riichi City standard: red fives on, open all-simples (kuitan) allowed,
-no rounded mangan (4 han 30 fu pays 7700, not 8000), counted yakuman at 13 han,
-no double yakuman.
+Tenhou / MJS / RC standard: red fives on, open all-simples (kuitan) allowed, **kiriage
+mangan on** (4 han 30 fu and 3 han 60 fu both round up to a mangan and pay 8000,
+not 7700), counted yakuman at 13 han, no double yakuman.
+
+Kiriage is a threshold on the raw base rather than two special cases: 30 × 2^6
+and 60 × 2^5 are both 1920, and 1920 is the only sub-mangan value the rule
+promotes. See `KIRIAGE_BASE` in `engine/score.ts`.
 
 ## Tests
 

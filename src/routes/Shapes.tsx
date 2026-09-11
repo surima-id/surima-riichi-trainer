@@ -1,5 +1,6 @@
 import { Hand } from '../components/Hand'
 import { Example, Lesson, Notation } from '../components/Lesson'
+import { LessonHeading } from '../components/ui'
 import { GENERATORS } from '../drills/generators'
 import { parseTiles } from '../engine/tiles'
 import { useT } from '../i18n'
@@ -30,17 +31,13 @@ export function ShapesLesson() {
         {t.t('lesson.shapes.p2c')}
       </p>
 
-      <h3 className="pt-2 font-semibold text-black dark:text-white">
-        {t.t('lesson.shapes.h2Open')}
-      </h3>
+      <LessonHeading>{t.t('lesson.shapes.h2Open')}</LessonHeading>
       <p>
         {t.t('lesson.shapes.open1')} <strong>{t.t('lesson.shapes.openWord')}</strong>{' '}
         {t.t('lesson.shapes.open2')}
       </p>
 
-      <h3 className="pt-2 font-semibold text-black dark:text-white">
-        {t.t('lesson.shapes.h2Waits')}
-      </h3>
+      <LessonHeading>{t.t('lesson.shapes.h2Waits')}</LessonHeading>
       <p>
         {t.t('lesson.shapes.waits1')} <strong>{t.t('lesson.shapes.waitsTenpai')}</strong>{' '}
         {t.t('lesson.shapes.waits2')} <strong>{t.t('lesson.shapes.waitsWait')}</strong>
@@ -63,9 +60,7 @@ export function ShapesLesson() {
         <Hand tiles={parseTiles('5m')} size="sm" sort={false} />
       </Example>
 
-      <h3 className="pt-2 font-semibold text-black dark:text-white">
-        {t.t('lesson.shapes.h2Special')}
-      </h3>
+      <LessonHeading>{t.t('lesson.shapes.h2Special')}</LessonHeading>
       <p>
         <strong>{t.t('lesson.shapes.specialA')}</strong> {t.t('lesson.shapes.specialB')}{' '}
         <strong>{t.t('lesson.shapes.specialC')}</strong> {t.t('lesson.shapes.specialD')}

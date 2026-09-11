@@ -5,8 +5,9 @@
  * territory, and each individual payment rounds up to the next 100. The dealer
  * pays and receives more: ×6 where a non-dealer is ×4.
  *
- * Ruleset: Tenhou / Riichi City standard — no kiriage mangan (a 4-han 30-fu
- * hand pays 7700, not 8000), kazoe yakuman at 13 han, no double yakuman.
+ * Ruleset: kiriage mangan is on — a hand whose raw base reaches 1920 rounds up
+ * to a full mangan, so 4 han 30 fu and 3 han 60 fu pay 8000 rather than 7700.
+ * Kazoe yakuman at 13 han, no double yakuman.
  */
 
 export type LimitName =
@@ -50,6 +51,17 @@ function roundUp100(points: number): number {
 }
 
 /**
+ * The raw base at which kiriage mangan rounds a hand up.
+ *
+ * Only two cells in the whole table land on 1920 — 4 han 30 fu and 3 han 60 fu,
+ * since 30 × 2^6 and 60 × 2^5 are the same number — and they are exactly the two
+ * kiriage promotes. The next cells down (4 han 25 fu and 3 han 50 fu) sit at
+ * 1600 and are left alone, which is why this is a threshold rather than a pair
+ * of special cases.
+ */
+export const KIRIAGE_BASE = 1920
+
+/**
  * Base points before the dealer/tsumo multipliers.
  *
  * The named tiers replace the formula once a hand is big enough: mangan caps
@@ -62,7 +74,7 @@ export function basePointsFor(han: number, fu: number): { base: number; limit: L
   if (han >= 6) return { base: 3000, limit: 'haneman' }
 
   const raw = fu * Math.pow(2, 2 + han)
-  if (han === 5 || raw >= 2000) return { base: 2000, limit: 'mangan' }
+  if (han === 5 || raw >= KIRIAGE_BASE) return { base: 2000, limit: 'mangan' }
   return { base: raw, limit: 'none' }
 }
 

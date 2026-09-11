@@ -6,9 +6,9 @@
  */
 
 import { Lesson } from '../components/Lesson'
-import { Card } from '../components/ui'
+import { Card, LessonHeading } from '../components/ui'
 import { GENERATORS } from '../drills/generators'
-import { paymentOf, scoreHand } from '../engine/score'
+import { KIRIAGE_BASE, paymentOf, scoreHand } from '../engine/score'
 import { useT } from '../i18n'
 
 const FU_COLUMNS = [20, 25, 30, 40, 50, 60, 70] as const
@@ -21,11 +21,14 @@ function ScoreTable({ dealer, tsumo }: { dealer: boolean; tsumo: boolean }) {
       <table className="w-full text-sm">
         <thead>
           <tr className="border-b border-black/10 dark:border-white/10">
-            <th className="py-2 pr-3 text-left text-xs font-medium uppercase tracking-wide text-black/45 dark:text-white/45">
+            <th className="py-2 pr-3 text-left text-xs font-semibold uppercase tracking-wide text-black/45 dark:text-white/45">
               {t.t('lesson.score.tableHan')}
             </th>
             {FU_COLUMNS.map((fu) => (
-              <th key={fu} className="px-2 py-2 text-right text-xs font-medium text-black/45 dark:text-white/45">
+              <th
+                key={fu}
+                className="px-2 py-2 text-right text-xs font-semibold text-black/45 dark:text-white/45"
+              >
                 {t.t('lesson.score.tableFu', { n: fu })}
               </th>
             ))}
@@ -33,22 +36,36 @@ function ScoreTable({ dealer, tsumo }: { dealer: boolean; tsumo: boolean }) {
         </thead>
         <tbody>
           {HAN_ROWS.map((han) => (
-            <tr key={han} className="border-b border-black/5 last:border-0 dark:border-white/5">
-              <td className="py-2 pr-3 font-medium">{han}</td>
+            <tr
+              key={han}
+              className="border-b border-black/5 transition-colors hover:bg-black/[0.03] last:border-0 dark:border-white/5 dark:hover:bg-white/[0.04]"
+            >
+              <td className="py-2.5 pr-3 font-semibold">{han}</td>
               {FU_COLUMNS.map((fu) => {
                 // 20 fu only exists as a pinfu self-draw, and 25 fu only as
                 // seven pairs, so the impossible cells are blanked out.
                 const impossible = (fu === 20 && !tsumo) || (fu === 25 && han === 1)
                 if (impossible) {
                   return (
-                    <td key={fu} className="px-2 py-2 text-right text-black/25 dark:text-white/25">
+                    <td key={fu} className="px-2 py-2.5 text-right text-black/25 dark:text-white/25">
                       —
                     </td>
                   )
                 }
                 const result = scoreHand({ han, fu, dealer, tsumo })
+                // Gold marks the cells kiriage actually promoted, which is a
+                // narrower set than "mangan below 5 han": 4 han 40 fu reaches
+                // the cap on the plain formula and was never rounded. Testing
+                // the raw base against the threshold is what tells the two
+                // apart.
+                const rounded = fu * Math.pow(2, 2 + han) === KIRIAGE_BASE
                 return (
-                  <td key={fu} className="px-2 py-2 text-right font-mono tabular-nums">
+                  <td
+                    key={fu}
+                    className={`px-2 py-2.5 text-right font-mono tabular-nums ${
+                      rounded ? 'font-bold text-gold-500 dark:text-gold-400' : ''
+                    }`}
+                  >
                     {t.payment(paymentOf(result, tsumo, dealer))}
                   </td>
                 )
@@ -56,10 +73,15 @@ function ScoreTable({ dealer, tsumo }: { dealer: boolean; tsumo: boolean }) {
             </tr>
           ))}
           <tr>
-            <td className="py-2 pr-3 font-medium">5+</td>
-            <td colSpan={FU_COLUMNS.length} className="px-2 py-2 text-right font-mono tabular-nums">
+            <td className="py-2.5 pr-3 font-semibold">5+</td>
+            <td
+              colSpan={FU_COLUMNS.length}
+              className="px-2 py-2.5 text-right font-mono tabular-nums"
+            >
               {t.t('lesson.score.tableManganRow', {
-                payment: t.payment(paymentOf(scoreHand({ han: 5, fu: 30, dealer, tsumo }), tsumo, dealer)),
+                payment: t.payment(
+                  paymentOf(scoreHand({ han: 5, fu: 30, dealer, tsumo }), tsumo, dealer),
+                ),
               })}
             </td>
           </tr>
@@ -81,7 +103,7 @@ export function ScoreLesson() {
       <p>
         {t.t('lesson.score.p1a')} <strong>{t.t('lesson.score.p1base')}</strong>:
       </p>
-      <p className="rounded-lg bg-black/[0.04] px-4 py-3 text-center font-mono text-sm dark:bg-white/[0.06]">
+      <p className="rounded-xl border border-black/5 bg-black/[0.04] px-4 py-4 text-center font-mono text-lg font-medium dark:border-white/10 dark:bg-white/[0.06]">
         base = fu × 2<sup>(2 + han)</sup>
       </p>
       <p>
@@ -94,23 +116,24 @@ export function ScoreLesson() {
         {t.t('lesson.score.p3b')}
       </p>
 
-      <h3 className="pt-2 font-semibold text-black dark:text-white">
-        {t.t('lesson.score.h2Limits')}
-      </h3>
+      <LessonHeading>{t.t('lesson.score.h2Kiriage')}</LessonHeading>
+      <p>
+        {t.t('lesson.score.kiriage1')} <strong>{t.t('lesson.score.kiriageTerm')}</strong>
+        {t.t('lesson.score.kiriage2')}
+      </p>
+      <p>{t.t('lesson.score.kiriage3')}</p>
+
+      <LessonHeading>{t.t('lesson.score.h2Limits')}</LessonHeading>
       <p>{t.t('lesson.score.limits')}</p>
 
-      <h3 className="pt-2 font-semibold text-black dark:text-white">
-        {t.t('lesson.score.tableNonDealerRon')}
-      </h3>
+      <LessonHeading>{t.t('lesson.score.tableNonDealerRon')}</LessonHeading>
       <div className="not-prose">
         <Card>
           <ScoreTable dealer={false} tsumo={false} />
         </Card>
       </div>
 
-      <h3 className="pt-2 font-semibold text-black dark:text-white">
-        {t.t('lesson.score.tableNonDealerTsumo')}
-      </h3>
+      <LessonHeading>{t.t('lesson.score.tableNonDealerTsumo')}</LessonHeading>
       <p className="text-sm">{t.t('lesson.score.tableNonDealerTsumoNote')}</p>
       <div className="not-prose">
         <Card>
@@ -118,18 +141,14 @@ export function ScoreLesson() {
         </Card>
       </div>
 
-      <h3 className="pt-2 font-semibold text-black dark:text-white">
-        {t.t('lesson.score.tableDealerRon')}
-      </h3>
+      <LessonHeading>{t.t('lesson.score.tableDealerRon')}</LessonHeading>
       <div className="not-prose">
         <Card>
           <ScoreTable dealer tsumo={false} />
         </Card>
       </div>
 
-      <h3 className="pt-2 font-semibold text-black dark:text-white">
-        {t.t('lesson.score.tableDealerTsumo')}
-      </h3>
+      <LessonHeading>{t.t('lesson.score.tableDealerTsumo')}</LessonHeading>
       <p className="text-sm">{t.t('lesson.score.tableDealerTsumoNote')}</p>
       <div className="not-prose">
         <Card>

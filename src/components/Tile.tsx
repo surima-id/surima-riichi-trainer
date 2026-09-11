@@ -10,16 +10,43 @@
  * sizing, the accessible name, and the red-five mapping stay consistent.
  */
 
+import { type CSSProperties } from 'react'
 import { type Tile as TileValue, face, isRed, rankOf, suitOf } from '../engine/tiles'
 import { useT } from '../i18n'
 
 export type TileSize = 'xs' | 'sm' | 'md' | 'lg'
 
+/**
+ * Tile widths, fluid for the same reason the type scale is: a hand is the
+ * subject of most pages, and a fixed 56px tile that looked right on a phone is
+ * lost on a desktop. Each clamp interpolates over the same 400px-1440px
+ * viewport as `--text-*`, so tiles and labels grow together.
+ */
 const SIZE_CLASSES: Record<TileSize, string> = {
-  xs: 'w-8',
-  sm: 'w-11',
-  md: 'w-14',
-  lg: 'w-18',
+  xs: 'w-[clamp(2.25rem,2.03rem+0.87vw,2.75rem)]',
+  sm: 'w-[clamp(2.875rem,2.59rem+1.15vw,3.5rem)]',
+  md: 'w-[clamp(3.5rem,3.05rem+1.83vw,4.5rem)]',
+  lg: 'w-[clamp(4.5rem,3.83rem+2.69vw,6rem)]',
+}
+
+/**
+ * The natural widths again, but allowed to shrink so a long hand fits one row.
+ *
+ * Flexbox does the fitting: the width above becomes the flex basis, and
+ * `shrink` lets every tile give up space proportionally when the row is
+ * narrower than the hand. A percentage-of-container calculation cannot do this
+ * job — inside a nested group (a called meld, say) `100%` resolves against that
+ * group's own width rather than the row's, which collapsed melds to a few
+ * pixels.
+ *
+ * `min-w-0` is required: a flex item will not shrink below its content's
+ * intrinsic width without it, and the tile's image counts as content.
+ */
+const FLUID_SIZE_CLASSES: Record<TileSize, string> = {
+  xs: 'w-[clamp(2.25rem,2.03rem+0.87vw,2.75rem)] min-w-0 shrink',
+  sm: 'w-[clamp(2.875rem,2.59rem+1.15vw,3.5rem)] min-w-0 shrink',
+  md: 'w-[clamp(3.5rem,3.05rem+1.83vw,4.5rem)] min-w-0 shrink',
+  lg: 'w-[clamp(4.5rem,3.83rem+2.69vw,6rem)] min-w-0 shrink',
 }
 
 /** Every tile asset is 300×400, so one ratio keeps the stack aligned. */
@@ -49,11 +76,25 @@ export interface TileProps {
   highlight?: 'none' | 'dora' | 'correct' | 'wrong'
   onClick?: () => void
   label?: string
+  /**
+   * Position in the hand, which staggers the deal-in animation so a hand lands
+   * left to right rather than all at once. Omit it for a tile that should just
+   * appear.
+   */
+  dealIndex?: number
+  /**
+   * Lets the tile shrink so a long hand stays on one row. Set by `Hand`; it
+   * only has an effect on a tile that is a flex item.
+   */
+  fluid?: boolean
 }
 
 const HIGHLIGHT_RING: Record<NonNullable<TileProps['highlight']>, string> = {
   none: '',
-  dora: 'ring-2 ring-amber-400',
+  // The dora ring pulses, because a dora is a thing to notice rather than a
+  // thing to read. The answer rings are static: a wrong answer that throbbed
+  // would be unkind.
+  dora: 'ring-2 ring-gold-400 anim-glow',
   correct: 'ring-2 ring-emerald-500',
   wrong: 'ring-2 ring-rose-500',
 }
@@ -68,57 +109,109 @@ export function Tile({
   highlight = 'none',
   onClick,
   label,
+  dealIndex,
+  fluid = false,
 }: TileProps) {
   const t = useT()
   const name = label ?? (faceDown ? t.t('tile.faceDown') : t.tile(tile))
-  const src = faceDown ? '/tiles/Back.svg' : tileAssetPath(tile)
+  const src = tileAssetPath(tile)
 
   const classes = [
-    'relative inline-block select-none transition',
-    SIZE_CLASSES[size],
+    'relative inline-block select-none rounded-[8%] transition duration-200 ease-out',
+    fluid ? FLUID_SIZE_CLASSES[size] : SIZE_CLASSES[size],
     rotated ? 'rotate-90' : '',
-    selected ? '-translate-y-2 ring-2 ring-sky-500' : '',
+    // A picked tile lifts clear of the row and casts a shadow, so the choice
+    // reads as a physical one rather than as a changed border colour.
+    selected ? '-translate-y-3 ring-2 ring-sky-500 drop-shadow-lg z-10' : '',
     dimmed ? 'opacity-40' : '',
     HIGHLIGHT_RING[highlight],
-    onClick ? 'cursor-pointer hover:-translate-y-1 focus-visible:outline-2 focus-visible:outline-sky-500' : '',
+    dealIndex !== undefined ? 'anim-deal' : '',
+    onClick
+      ? 'cursor-pointer hover:-translate-y-1.5 hover:drop-shadow-md active:translate-y-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-500'
+      : '',
   ]
     .filter(Boolean)
     .join(' ')
 
-  // A face-down tile is a single image; a face-up one is the frame plus glyph.
+  // Dealing is capped so a fourteen-tile hand finishes in a beat rather than
+  // crawling in over a second and a half.
+  const style =
+    dealIndex === undefined ? undefined : ({ '--stagger': `${Math.min(dealIndex * 35, 420)}ms` } as CSSProperties)
+
+  /**
+   * A face-down tile is drawn here rather than taken from the asset set.
+   *
+   * The vendored `Back.svg` is a flat red rectangle with no border or edge, so
+   * beside the framed faces it reads as a missing image rather than as a tile.
+   * This is the same shape with a rim and a bevel, which sits in the row at the
+   * same weight as a face-up tile.
+   */
+  if (faceDown) {
+    return (
+      <span
+        className={classes}
+        style={style}
+        role="img"
+        aria-label={name}
+        title={name}
+      >
+        <span
+          className="block w-full rounded-[8%] border border-black/10 bg-gradient-to-br from-[#2f7d52] to-[#1c5436] shadow-inner dark:border-white/10"
+          style={{ aspectRatio: TILE_ASPECT }}
+        >
+          {/* An inset panel, the way a real tile back is recessed from its rim. */}
+          <span className="m-[12%] block h-[76%] rounded-[6%] border border-white/15 bg-white/5" />
+        </span>
+      </span>
+    )
+  }
+
   const image = (
     <>
       <img
-        src={faceDown ? '/tiles/Back.svg' : '/tiles/Front.svg'}
+        src="/tiles/Front.svg"
         alt=""
         aria-hidden="true"
         draggable={false}
         className="block w-full"
         style={{ aspectRatio: TILE_ASPECT }}
       />
-      {!faceDown && (
-        <img
-          src={src}
-          alt=""
-          aria-hidden="true"
-          draggable={false}
-          className="absolute inset-0 block w-full"
-          style={{ aspectRatio: TILE_ASPECT }}
-        />
-      )}
+      <img
+        src={src}
+        alt=""
+        aria-hidden="true"
+        draggable={false}
+        className="absolute inset-0 block w-full"
+        style={{ aspectRatio: TILE_ASPECT }}
+      />
     </>
   )
 
   if (!onClick) {
     return (
-      <span className={classes} role="img" aria-label={name} title={name} data-face={face(tile)}>
+      <span
+        className={classes}
+        style={style}
+        role="img"
+        aria-label={name}
+        title={name}
+        data-face={face(tile)}
+      >
         {image}
       </span>
     )
   }
 
   return (
-    <button type="button" onClick={onClick} className={classes} aria-label={name} title={name} data-face={face(tile)}>
+    <button
+      type="button"
+      onClick={onClick}
+      className={classes}
+      style={style}
+      aria-label={name}
+      title={name}
+      data-face={face(tile)}
+    >
       {image}
     </button>
   )

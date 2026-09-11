@@ -1,11 +1,32 @@
 /** Small shared building blocks, so pages stay about content rather than markup. */
 
-import { type ReactNode } from 'react'
+import { type CSSProperties, type ReactNode } from 'react'
 
-export function Card({ children, className = '' }: { children: ReactNode; className?: string }) {
+/**
+ * Turns a list position into an animation delay.
+ *
+ * Staggering is done with one CSS custom property rather than a keyframe per
+ * item, so a caller only says *which* item this is. The delay is capped, because
+ * past about half a second a stagger stops reading as choreography and starts
+ * reading as lag.
+ */
+export function stagger(index: number, step = 60, max = 480): CSSProperties {
+  return { '--stagger': `${Math.min(index * step, max)}ms` } as CSSProperties
+}
+
+export function Card({
+  children,
+  className = '',
+  style,
+}: {
+  children: ReactNode
+  className?: string
+  style?: CSSProperties
+}) {
   return (
     <div
-      className={`rounded-xl border border-black/5 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-felt-800 ${className}`}
+      className={`rounded-2xl border border-black/5 bg-white/90 p-5 shadow-sm backdrop-blur-sm transition duration-300 sm:p-6 dark:border-white/10 dark:bg-felt-800/90 ${className}`}
+      style={style}
     >
       {children}
     </div>
@@ -13,12 +34,36 @@ export function Card({ children, className = '' }: { children: ReactNode; classN
 }
 
 export function SectionTitle({ children }: { children: ReactNode }) {
-  return <h2 className="mb-3 text-lg font-semibold tracking-tight">{children}</h2>
+  return (
+    <h2 className="mb-3 flex items-center gap-2.5 text-xl font-semibold tracking-tight">
+      {/* A short gold rule, so a section announces itself before the words do. */}
+      <span
+        aria-hidden="true"
+        className="h-5 w-1 shrink-0 rounded-full bg-gradient-to-b from-gold-400 to-felt-500 dark:from-gold-300 dark:to-felt-400"
+      />
+      {children}
+    </h2>
+  )
+}
+
+/**
+ * The heading inside a lesson body.
+ *
+ * `Prose` dims its contents to 75% so body copy sits back from the headings; a
+ * heading has to opt back out to full contrast, which is why this exists as a
+ * component rather than as a bare `h3` repeated on every lesson page.
+ */
+export function LessonHeading({ children }: { children: ReactNode }) {
+  return (
+    <h3 className="pt-3 text-lg font-semibold tracking-tight text-black dark:text-white">
+      {children}
+    </h3>
+  )
 }
 
 export function Prose({ children }: { children: ReactNode }) {
   return (
-    <div className="space-y-3 text-[15px] leading-relaxed text-black/75 dark:text-white/75">
+    <div className="space-y-4 text-base leading-relaxed text-black/75 dark:text-white/75">
       {children}
     </div>
   )
@@ -27,7 +72,8 @@ export function Prose({ children }: { children: ReactNode }) {
 type ButtonVariant = 'primary' | 'secondary' | 'ghost'
 
 const BUTTON_CLASSES: Record<ButtonVariant, string> = {
-  primary: 'bg-felt-700 text-white hover:bg-felt-800 dark:bg-felt-100 dark:text-felt-900 dark:hover:bg-white',
+  primary:
+    'bg-felt-700 text-white shadow-sm hover:bg-felt-800 hover:shadow-md dark:bg-felt-100 dark:text-felt-900 dark:hover:bg-white',
   secondary:
     'border border-black/10 bg-white text-black/80 hover:bg-black/5 dark:border-white/15 dark:bg-transparent dark:text-white/85 dark:hover:bg-white/10',
   ghost: 'text-black/60 hover:text-black dark:text-white/60 dark:hover:text-white',
@@ -53,7 +99,7 @@ export function Button({
       type={type}
       onClick={onClick}
       disabled={disabled}
-      className={`rounded-lg px-4 py-2 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-500 ${BUTTON_CLASSES[variant]} ${className}`}
+      className={`rounded-xl px-5 py-2.5 text-sm font-semibold transition duration-200 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:translate-y-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-500 ${BUTTON_CLASSES[variant]} ${className}`}
     >
       {children}
     </button>
@@ -63,18 +109,23 @@ export function Button({
 export function Badge({
   children,
   tone = 'neutral',
+  className = '',
 }: {
   children: ReactNode
-  tone?: 'neutral' | 'good' | 'bad' | 'info'
+  tone?: 'neutral' | 'good' | 'bad' | 'info' | 'gold'
+  className?: string
 }) {
   const tones = {
     neutral: 'bg-black/5 text-black/70 dark:bg-white/10 dark:text-white/70',
     good: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300',
     bad: 'bg-rose-500/15 text-rose-700 dark:text-rose-300',
     info: 'bg-sky-500/15 text-sky-700 dark:text-sky-300',
+    gold: 'bg-gold-400/20 text-gold-500 dark:bg-gold-400/15 dark:text-gold-300',
   }
   return (
-    <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium ${tones[tone]}`}>
+    <span
+      className={`inline-flex items-center rounded-lg px-2.5 py-1 text-xs font-semibold ${tones[tone]} ${className}`}
+    >
       {children}
     </span>
   )
@@ -85,18 +136,23 @@ export function LineItem({
   label,
   value,
   detail,
+  style,
 }: {
   label: ReactNode
   value: ReactNode
   detail?: ReactNode
+  style?: CSSProperties
 }) {
   return (
-    <div className="flex items-baseline justify-between gap-4 border-b border-dashed border-black/10 py-1.5 last:border-0 dark:border-white/10">
+    <div
+      className="anim-fade-up flex items-baseline justify-between gap-4 border-b border-dashed border-black/10 py-2 last:border-0 dark:border-white/10"
+      style={style}
+    >
       <div>
         <div className="text-sm">{label}</div>
         {detail && <div className="text-xs text-black/50 dark:text-white/50">{detail}</div>}
       </div>
-      <div className="shrink-0 font-mono text-sm tabular-nums">{value}</div>
+      <div className="shrink-0 font-mono text-sm font-medium tabular-nums">{value}</div>
     </div>
   )
 }

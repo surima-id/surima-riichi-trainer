@@ -8,10 +8,23 @@
 
 import { Breakdown } from '../components/Breakdown'
 import { Hand } from '../components/Hand'
+import { stagger } from '../components/ui'
 import { scoreHandFull } from '../engine/explain'
+import { type Hand as HandShape, decompose, waitInterpretations } from '../engine/parse'
 import { discardOptions, shanten, waits } from '../engine/shanten'
-import { scoreHand } from '../engine/score'
-import { ALL_FACES, WINDS, formatTiles, isTerminalOrHonor, suitOf } from '../engine/tiles'
+import { paymentOf } from '../engine/score'
+import {
+  ALL_FACES,
+  ROUND_WINDS,
+  type Tile,
+  WINDS,
+  face,
+  formatTiles,
+  isTerminalOrHonor,
+  parseTiles,
+  sortTiles,
+  suitOf,
+} from '../engine/tiles'
 import { YAKU_LIST, type YakuId } from '../engine/yaku'
 import { type Translator } from '../i18n'
 import { buildScoringHand } from './hands'
@@ -36,6 +49,7 @@ function choices<T>(
   key: (value: T) => string,
   render: (value: T) => string,
   count = 4,
+  tilesOf?: (value: T) => Tile[],
 ): Choice[] {
   const correctKey = key(correct)
   const seen = new Set([correctKey])
@@ -49,36 +63,59 @@ function choices<T>(
     distractors.push(candidate)
   }
 
-  return rng
-    .shuffle([correct, ...distractors])
-    .map((value, i) => ({ id: `c${i}`, label: render(value), correct: key(value) === correctKey }))
+  return rng.shuffle([correct, ...distractors]).map((value, i) => ({
+    id: `c${i}`,
+    label: render(value),
+    correct: key(value) === correctKey,
+    tiles: tilesOf?.(value),
+  }))
 }
 
-/** Winds are honor tiles, so the tile namer already knows how to say them. */
-function contextFacts(built: ReturnType<typeof buildScoringHand>, t: Translator): string[] {
-  if (!built) return []
-  const { context, dealer } = built
-  return [
-    t.t('fact.seat', { wind: t.tile(context.seatWind) }),
-    t.t('fact.round', { wind: t.tile(context.roundWind) }),
-    t.t(context.tsumo ? 'fact.tsumo' : 'fact.ron'),
-    t.t(context.menzen ? 'fact.closed' : 'fact.open'),
-    t.t(dealer ? 'fact.dealer' : 'fact.nonDealer'),
-  ]
+/**
+ * The conditions a counting drill has to state.
+ *
+ * Everything here bears on the answer and none of it is visible in the tiles.
+ * Riichi is the case that made this necessary: it is worth a han, so a hand
+ * that declared it without saying so asked the player to count a han they were
+ * never told about, and the answer key and the question disagreed.
+ *
+ * Open versus closed is deliberately absent — the called melds show it in the
+ * hand itself — as is dealer, which the seat wind already gives away.
+ */
+function handContext(built: ReturnType<typeof buildScoringHand>, t: Translator) {
+  if (!built) return undefined
+  const { context } = built
+  const flags: string[] = []
+  if (context.doubleRiichi) flags.push(t.t('yaku.double-riichi'))
+  else if (context.riichi) flags.push(t.t('context.riichi'))
+  if (context.ippatsu) flags.push(t.t('context.ippatsu'))
+
+  return {
+    doraIndicators: context.doraIndicators,
+    seatWind: context.seatWind,
+    roundWind: context.roundWind,
+    tsumo: context.tsumo,
+    flags,
+  }
 }
 
 /**
  * Randomizes the win condition. Doing this here rather than inside the hand
  * builder keeps the builder focused on tile shapes.
+ *
+ * One dora indicator is always flipped, as it is in a real hand. Whether it
+ * points at anything the hand holds is left to chance — reading the indicator
+ * and finding nothing is as much a part of counting as finding two.
  */
 function randomContext(rng: Rng, menzen: boolean) {
   const seat = rng.pick(WINDS)
   return {
     seatWind: seat,
-    roundWind: rng.pick(WINDS),
+    roundWind: rng.pick(ROUND_WINDS),
     tsumo: rng.next() < 0.45,
     menzen,
     riichi: menzen && rng.next() < 0.4,
+    doraIndicators: [rng.pick(ALL_FACES)],
   }
 }
 
@@ -103,7 +140,7 @@ const tileRecognition: Generator = {
         <p className="text-sm">
           {t.t(isHonorTile ? 'drill.tiles.name.explainHonor' : 'drill.tiles.name.explainSuited', {
             name: t.tile(tile),
-            notation: formatTiles([tile]),
+            notation: t.notation([tile]),
             suit: isHonorTile ? '' : t.suit(suitOf(tile)),
           })}
         </p>
@@ -140,7 +177,7 @@ const terminalPicker: Generator = {
           <p>
             {t.t('drill.tiles.terminals.explain', {
               list:
-                formatTiles(correctIndices.map((i) => tiles[i])) ||
+                t.notation(correctIndices.map((i) => tiles[i])) ||
                 t.t('drill.tiles.terminals.none'),
             })}
           </p>
@@ -155,6 +192,34 @@ const terminalPicker: Generator = {
 }
 
 // ---------------------------------------------------------------- Hand shapes
+
+/**
+ * True when a tenpai hand waits on one tile, in one named shape.
+ *
+ * Two kinds of ambiguity disqualify a hand from the wait drill, and both have to
+ * be excluded for the question to have a single answer:
+ *
+ * - Several accepted tiles. `2345678m` is tenpai on 2m/5m/8m and more; there is
+ *   no one wait to name.
+ * - One accepted tile, several readings. The same 14 tiles can decompose as a
+ *   run completed by a ryanmen or as a triplet completed by a shanpon, and the
+ *   scorer picks whichever pays best — so the "right" shape would be an
+ *   arbitrary choice between two true answers.
+ */
+function hasSingleWaitShape(tenpai: Tile[], hand: HandShape): boolean {
+  const winning = waits(tenpai, hand.calls.length)
+  if (winning.length !== 1) return false
+
+  const complete: HandShape = {
+    concealed: [...tenpai, winning[0]],
+    calls: hand.calls,
+    winTile: winning[0],
+  }
+  const shapes = new Set(
+    decompose(complete).flatMap((d) => waitInterpretations(d, winning[0]).map((w) => w.type)),
+  )
+  return shapes.size === 1
+}
 
 const waitIdentification: Generator = {
   id: 'shapes.wait',
@@ -177,10 +242,30 @@ const waitIdentification: Generator = {
       const winning = waits(tenpai, built.hand.calls.length)
       if (winning.length === 0) continue
 
-      // The answer is notation, which is already language-neutral, so it keys
-      // and renders as itself.
+      /**
+       * Only hands whose wait is one plain shape.
+       *
+       * A shape like `2345678m` is tenpai on five different tiles and is read as
+       * several overlapping ryanmen at once. Naming "the wait" on such a hand
+       * has no single right answer, and the drill teaches the five named shapes
+       * — ryanmen, kanchan, penchan, shanpon, tanki — so a hand that is not
+       * cleanly one of them is not the question being asked.
+       *
+       * Checked against every decomposition, because a hand that reads as one
+       * shape *or* another (a run plus a pair that could equally be a triplet
+       * plus a partial run) is exactly as ambiguous as a multi-tile wait.
+       */
+      if (!hasSingleWaitShape(tenpai, built.hand)) continue
+
+      /**
+       * The answer keys on strict notation, which is language-neutral and
+       * parses back to the same tiles in either language. What the option
+       * *shows* is the tile itself plus the readable form, so the two never
+       * have to agree on wording.
+       */
       const answer = formatTiles(winning)
       const wrong = ALL_FACES.map((f) => formatTiles([f]))
+      const asTiles = (notation: string) => parseTiles(notation)
 
       return {
         drillId: 'shapes.wait',
@@ -188,12 +273,20 @@ const waitIdentification: Generator = {
         prompt: t.t('drill.shapes.wait.prompt'),
         tiles: tenpai,
         calls: built.hand.calls,
-        choices: choices(rng, answer, wrong, (s) => s, (s) => s),
+        choices: choices(
+          rng,
+          answer,
+          wrong,
+          (s) => s,
+          (s) => t.notation(parseTiles(s)),
+          4,
+          asTiles,
+        ),
         explanation: (
           <div className="space-y-3 text-sm">
             <p>
               {t.t('drill.shapes.wait.explain', {
-                notation: answer,
+                notation: t.notation(winning),
                 names: winning.map(t.tile).join(', '),
               })}
             </p>
@@ -223,11 +316,21 @@ const shantenCount: Generator = {
     if (!built) return tileRecognition.generate(seed, t)
 
     // Swap a couple of tiles out for random ones to back the hand away from ready.
-    const tiles = [...built.hand.concealed]
+    const swapped = [...built.hand.concealed]
     const swaps = 1 + rng.int(2)
     for (let i = 0; i < swaps; i++) {
-      tiles[rng.int(tiles.length)] = rng.pick(ALL_FACES)
+      swapped[rng.int(swapped.length)] = rng.pick(ALL_FACES)
     }
+
+    /**
+     * Shown as the 13 tiles a hand holds between draws, not 14.
+     *
+     * `buildScoringHand` returns a complete 14-tile hand because it builds
+     * backwards from a win. Asking "how far from ready is this?" of 14 tiles
+     * asks about a hand mid-turn, which is not the position the question means
+     * and not the shape a player counts shanten on.
+     */
+    const tiles = sortTiles(swapped).slice(0, 13)
     const distance = shanten(tiles, built.hand.calls.length)
 
     // Answer and options come from one numeric domain rendered once, so the
@@ -312,7 +415,15 @@ const yakuIdentification: Generator = {
           ...shapeYaku.map((y) => y.id),
           ...rng.shuffle(absent).slice(0, Math.max(2, 5 - shapeYaku.length)),
         ])
-        .map((id, i) => ({ id: `y${i}`, label: t.yaku(id), correct: present.has(id) }))
+        // Labelled the way the reference page and the breakdown label a yaku:
+        // the romaji a player actually says at the table, glossed with the
+        // meaning. Learning "Tanyao" is the point; "All Simples" alone teaches
+        // a name nobody uses.
+        .map((id, i) => ({
+          id: `y${i}`,
+          label: `${t.romaji(id)} (${t.yaku(id)})`,
+          correct: present.has(id),
+        }))
 
       return {
         drillId: 'yaku.identify',
@@ -322,7 +433,16 @@ const yakuIdentification: Generator = {
         tiles: built.hand.concealed,
         calls: built.hand.calls,
         winTile: built.hand.winTile,
-        facts: contextFacts(built, t),
+        /**
+         * No context lines here, unlike the counting drills.
+         *
+         * This drill grades only the shape-based yaku — riichi, ippatsu and the
+         * rest are filtered out of both the answer and the distractors — so
+         * seat wind, round wind and a riichi declaration decide nothing. Listing
+         * them invites the player to weigh facts that cannot change the answer.
+         * The one exception is open versus closed, which the called melds show
+         * in the hand itself.
+         */
         choices: options,
         explanation: <Breakdown scored={scored} dealer={built.dealer} />,
         seed,
@@ -361,16 +481,27 @@ const hanCount: Generator = {
     if (!made) return tileRecognition.generate(seed, t)
     const { built, scored } = made
 
+    /**
+     * Distractors are the neighbouring han counts, which is exactly where a
+     * miscount lands: forget the dora and you are one low, double-count a yaku
+     * and you are one high. Clamped at 1, since a scored hand always has at
+     * least one han.
+     */
+    const rng = makeRng(seed)
+    const near = [scored.han - 2, scored.han - 1, scored.han + 1, scored.han + 2].filter(
+      (n) => n >= 1 && n !== scored.han,
+    )
+
     return {
       drillId: 'han.count',
-      kind: 'number',
+      kind: 'choice',
       prompt: t.t('drill.han.count.prompt'),
       hint: t.t('drill.han.count.hint'),
       tiles: built.hand.concealed,
       calls: built.hand.calls,
       winTile: built.hand.winTile,
-      facts: contextFacts(built, t),
-      answer: scored.han,
+      context: handContext(built, t),
+      choices: choices(rng, scored.han, near, String, (n) => t.han(n)),
       explanation: <Breakdown scored={scored} dealer={built.dealer} />,
       seed,
     }
@@ -386,22 +517,46 @@ const fuCount: Generator = {
     if (!made) return tileRecognition.generate(seed, t)
     const { built, scored } = made
 
+    /**
+     * Fu comes in steps of ten, so the wrong answers are the adjacent steps —
+     * the values you reach by missing one concealed triplet or one wait bonus.
+     * 25 is included when it is not the answer, because mistaking a seven-pair
+     * hand for an ordinary one is the classic fu error.
+     */
+    const rng = makeRng(seed)
+    const total = scored.fu.total
+    const near = [...new Set([total - 20, total - 10, total + 10, total + 20, 25])].filter(
+      (n) => n >= 20 && n !== total,
+    )
+
     return {
       drillId: 'fu.count',
-      kind: 'number',
+      kind: 'choice',
       prompt: t.t('drill.fu.count.prompt'),
       hint: t.t('drill.fu.count.hint'),
       tiles: built.hand.concealed,
       calls: built.hand.calls,
       winTile: built.hand.winTile,
-      facts: contextFacts(built, t),
-      answer: scored.fu.total,
+      context: handContext(built, t),
+      choices: choices(rng, total, near, String, (n) => t.fu(n)),
       explanation: <Breakdown scored={scored} dealer={built.dealer} />,
       seed,
     }
   },
 }
 
+/**
+ * The scoring drill: read a hand, then state what it pays.
+ *
+ * Typed rather than multiple-choice, and asked as *payments* rather than as a
+ * total. Both follow from what the drill is for. Picking 8000 from four options
+ * can be done by elimination without counting anything; typing it cannot. And a
+ * tsumo is collected as separate payments — "2000/3900" is what you say at the
+ * table, while its sum is a number nobody ever announces.
+ *
+ * Unlike the han and fu drills, this one does not hand over the han and fu in a
+ * hint. Counting them is the work.
+ */
 const scoreCount: Generator = {
   id: 'score.total',
   titleKey: 'drill.score.total.title',
@@ -410,31 +565,23 @@ const scoreCount: Generator = {
     const made = scoredQuestion(seed)
     if (!made) return tileRecognition.generate(seed, t)
     const { built, scored } = made
-    const rng = makeRng(seed)
-
-    // Distractors are the payouts of neighbouring han/fu values, which is what
-    // a user who miscounts by one actually lands on -- and they are forced
-    // distinct so no two options collapse into the same number.
-    const total = scored.score.total
-    const nearby = [...new Set([
-      scoreHand({ han: scored.han + 1, fu: scored.fu.total, dealer: built.dealer, tsumo: built.context.tsumo }).total,
-      scoreHand({ han: Math.max(1, scored.han - 1), fu: scored.fu.total, dealer: built.dealer, tsumo: built.context.tsumo }).total,
-      scoreHand({ han: scored.han, fu: scored.fu.total + 10, dealer: built.dealer, tsumo: built.context.tsumo }).total,
-      scoreHand({ han: scored.han, fu: scored.fu.total, dealer: !built.dealer, tsumo: built.context.tsumo }).total,
-      total * 2,
-      Math.max(100, Math.round(total / 2 / 100) * 100),
-    ])].filter((n) => n !== total)
 
     return {
       drillId: 'score.total',
-      kind: 'choice',
+      kind: 'payment',
       prompt: t.t('drill.score.total.prompt'),
-      hint: t.t('drill.score.total.hint', { han: scored.han, fu: scored.fu.total }),
+      hint: t.t(
+        built.context.tsumo
+          ? built.dealer
+            ? 'drill.score.total.hintTsumoDealer'
+            : 'drill.score.total.hintTsumoNonDealer'
+          : 'drill.score.total.hintRon',
+      ),
       tiles: built.hand.concealed,
       calls: built.hand.calls,
       winTile: built.hand.winTile,
-      facts: contextFacts(built, t),
-      choices: choices(rng, total, nearby, String, String),
+      context: handContext(built, t),
+      payment: paymentOf(scored.score, built.context.tsumo, built.dealer),
       explanation: <Breakdown scored={scored} dealer={built.dealer} />,
       seed,
     }
@@ -455,11 +602,28 @@ const efficiencyDrill: Generator = {
       if (!built) continue
 
       // Perturb a complete hand into a realistic 14-tile decision.
-      const tiles = [...built.hand.concealed]
+      const perturbed = [...built.hand.concealed]
       for (let i = 0; i < 2 + rng.int(2); i++) {
-        tiles[rng.int(tiles.length)] = rng.pick(ALL_FACES)
+        perturbed[rng.int(perturbed.length)] = rng.pick(ALL_FACES)
       }
-      if (tiles.length !== 14) continue
+      if (perturbed.length !== 14) continue
+
+      /**
+       * Sorted here rather than by `Hand`, because `correctIndices` below index
+       * into this array and the quiz grades against those indices — a hand this
+       * drill displays is always shown exactly as it is stored.
+       *
+       * Sorting also matters pedagogically. Perturbing a complete hand leaves
+       * the untouched melds sitting in their original order with the random
+       * tiles wedged between them, which pre-groups the hand into blocks and
+       * hands the player the read for free. A plainly sorted hand is what you
+       * actually face at the table: finding the blocks is the exercise.
+       */
+      const tiles = sortTiles(perturbed)
+
+      // A hand that has already won poses no discard decision at all, so a
+      // perturbation that happens to leave the hand complete is not a question.
+      if (shanten(tiles, 0) < 0) continue
 
       const options = discardOptions(tiles)
       if (options.length < 3) continue
@@ -469,10 +633,32 @@ const efficiencyDrill: Generator = {
       const worst = options[options.length - 1]
       if (best.shanten === worst.shanten && best.tilesLeft === worst.tilesLeft) continue
 
+      /**
+       * The best discard has to be strictly best, not merely first.
+       *
+       * `discardOptions` sorts by shanten then acceptance and breaks the
+       * remaining tie on tile order, so `options[0]` is only *a* best discard.
+       * Where several tiles leave exactly the same shanten and acceptance they
+       * are all equally right, and marking whichever sorted first as the sole
+       * answer fails a player who picked one of the others for the same reason.
+       * Such a hand is discarded rather than graded.
+       */
+      const tiedForBest = options.filter(
+        (o) => o.shanten === best.shanten && o.tilesLeft === best.tilesLeft,
+      )
+      if (tiedForBest.length > 1) continue
+
+      /**
+       * Every copy of the best tile, not just the first.
+       *
+       * A discard is a choice of *tile*, and a hand holding two 2m offers the
+       * same discard twice — clicking the second copy was being marked wrong.
+       * Comparison is on `face()` because a red five is a distinct `Tile` value
+       * from its plain twin while being the same discard.
+       */
       const correctIndices = tiles
-        .map((tile, index) => (tile === best.tile ? index : -1))
+        .map((tile, index) => (face(tile) === best.tile ? index : -1))
         .filter((i) => i >= 0)
-        .slice(0, 1)
 
       return {
         drillId: 'efficiency.discard',
@@ -481,6 +667,8 @@ const efficiencyDrill: Generator = {
         hint: t.t('drill.efficiency.discard.hint'),
         tiles,
         correctIndices,
+        // One tile is discarded, so picking any single copy of it is right.
+        selectOne: true,
         explanation: (
           <div className="space-y-3 text-sm">
             <p>
@@ -492,19 +680,29 @@ const efficiencyDrill: Generator = {
                   name: t.tile(best.tile),
                   n: best.shanten,
                   tiles: t.t('unit.tiles', { n: best.tilesLeft }),
-                  notation: formatTiles(best.faces),
+                  notation: t.notation(best.faces),
                 },
               )}
             </p>
             <div>
-              <p className="mb-1 text-black/60 dark:text-white/60">
+              <p className="mb-1.5 text-black/60 dark:text-white/60">
                 {t.t('drill.efficiency.discard.ranked')}
               </p>
               <ul className="space-y-1">
-                {options.slice(0, 6).map((option) => (
-                  <li key={option.tile} className="flex justify-between gap-4 font-mono text-xs">
-                    <span>{formatTiles([option.tile])}</span>
-                    <span className="text-black/55 dark:text-white/55">
+                {options.slice(0, 6).map((option, i) => (
+                  <li
+                    key={option.tile}
+                    // The best discard is the answer; the rest are context, so
+                    // only the first row is set at full strength.
+                    className={`anim-fade-up flex justify-between gap-4 rounded-lg px-2 py-1 font-mono text-sm ${
+                      i === 0
+                        ? 'bg-emerald-500/10 font-semibold text-emerald-800 dark:text-emerald-300'
+                        : ''
+                    }`}
+                    style={stagger(i, 45)}
+                  >
+                    <span>{t.notation([option.tile])}</span>
+                    <span className={i === 0 ? '' : 'text-black/55 dark:text-white/55'}>
                       {option.shanten === 0
                         ? t.t('drill.efficiency.discard.rowReady')
                         : t.t('drill.efficiency.discard.rowAway', { n: option.shanten })}{' '}

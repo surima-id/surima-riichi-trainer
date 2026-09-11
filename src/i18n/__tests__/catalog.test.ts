@@ -107,13 +107,25 @@ describe('tile naming', () => {
   })
 
   /**
-   * Tile names are terminology, so the Indonesian UI keeps them in English —
-   * an Indonesian player says "Five of Bamboo", not "Lima Bambu".
+   * Tile names are prose, not terminology, so they read in the reader's
+   * language. Word order is part of that: Indonesian trails the modifier and
+   * drops the connector, so "Red Five of Bamboo" is "Lima Bambu Merah" rather
+   * than a word-for-word transposition.
    */
-  it('keeps tile names in English on the Indonesian side too', () => {
-    expect(id_.tile(parseTiles('5s')[0])).toBe('Five of Bamboo')
-    expect(id_.tile(parseTiles('0s')[0])).toBe('Red Five of Bamboo')
-    expect(id_.tile(EAST)).toBe('East')
+  it('names tiles in Indonesian, with Indonesian word order', () => {
+    expect(id_.tile(parseTiles('5s')[0])).toBe('Lima Bambu')
+    expect(id_.tile(parseTiles('0s')[0])).toBe('Lima Bambu Merah')
+    expect(id_.tile(EAST)).toBe('Timur')
+  })
+
+  it('gives every tile a different name in the two languages', () => {
+    // Catches a rank, suit or honor left untranslated in one catalog — the
+    // failure mode that put English tile names in the Indonesian UI.
+    const shared: string[] = []
+    for (let face = 0; face < 34; face++) {
+      if (en_.tile(face) === id_.tile(face)) shared.push(en_.tile(face))
+    }
+    expect(shared, `these tile names read identically in both languages: ${shared.join(', ')}`).toEqual([])
   })
 
   it('names every tile in both languages', () => {
