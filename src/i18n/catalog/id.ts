@@ -384,8 +384,8 @@ export const messages = {
   'yakuPage.concealedHint': 'Tile tertutup adalah sisa tangan — tile apa pun yang melengkapinya.',
   'yakuPage.notAvailable': '—',
   // ---- Lesson: Tiles ----
-  'lesson.tiles.subtitle': 'Tiga puluh empat jenis tile, masing-masing empat salinan — 136 seluruhnya.',
-  'lesson.tiles.p1': 'Riichi memakai tiga jenis tile berangka dan tujuh honor tile. Jenis berangka berjalan dari 1 sampai 9 dan bisa membentuk urutan; honor tile tidak bisa.',
+  'lesson.tiles.subtitle': '34 jenis tile, masing-masing empat salinan — 136 seluruhnya.',
+  'lesson.tiles.p1': 'Riichi memakai tiga kategori tile angka dan tujuh honor tile. Jenis berangka berjalan dari 1 sampai 9 dan bisa membentuk urutan; honor tile tidak bisa.',
   'lesson.tiles.exMan': 'Karakter (manzu) — angka tertulis',
   'lesson.tiles.exPin': 'Lingkaran (pinzu) — hitung titiknya',
   'lesson.tiles.exSou': 'Bambu (souzu) — hitung batangnya; angka 1 berupa burung',
