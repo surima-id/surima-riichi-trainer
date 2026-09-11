@@ -215,6 +215,46 @@ body {
   }
 }
 
+/* The mastery payout: a gold pulse outward, for the moment a run banks points.
+   Warmer and wider than `ring-flash`, which is the per-answer confirmation. */
+@keyframes surima-award-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgb(212 175 55 / 0.5);
+  }
+  100% {
+    box-shadow: 0 0 0 1.6rem rgb(212 175 55 / 0);
+  }
+}
+
+/* A point mark landing: dropped in, overshooting once, then settling. Each mark
+   is staggered so a two-point run reads as two arrivals rather than one jump. */
+@keyframes surima-award-mark {
+  0% {
+    opacity: 0;
+    transform: scale(0.3) translateY(-0.4rem);
+  }
+  55% {
+    opacity: 1;
+    transform: scale(1.5) translateY(0);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* The bar's own arrival, so the fill reads as having just been earned. */
+@keyframes surima-award-rise {
+  0% {
+    opacity: 0;
+    transform: translateY(0.35rem);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 @keyframes surima-shimmer {
   from {
     transform: translateX(-110%);
@@ -276,6 +316,21 @@ body {
 
 .anim-ring-flash {
   animation: surima-ring-flash 0.7s ease-out both;
+}
+
+.anim-award-pulse {
+  animation: surima-award-pulse 0.9s ease-out both;
+  animation-delay: var(--stagger);
+}
+
+.anim-award-mark {
+  animation: surima-award-mark 0.5s var(--ease-spring) both;
+  animation-delay: var(--stagger);
+}
+
+.anim-award-rise {
+  animation: surima-award-rise 0.45s var(--ease-out-soft) both;
+  animation-delay: var(--stagger);
 }
 
 .anim-glow {

@@ -7,7 +7,7 @@
  * ten, which is why `generators` is a list.
  */
 
-import { useCallback, useMemo, useState } from 'react'
+import { type CSSProperties, useCallback, useMemo, useState } from 'react'
 import { type Generator, type Question } from '../drills/types'
 import { type Payment } from '../engine/score'
 import { makeRng, randomSeed } from '../drills/random'
@@ -301,19 +301,45 @@ export function Quiz({
 
         {/* What the run was worth, and where it leaves the chapter. The points
             were banked in `advance()` before this render, so the bar is read from
-            the store rather than recomputed — it already includes this run. */}
+            the store rather than recomputed — it already includes this run.
+
+            A run that earned something gets the gold pulse and the marks land
+            one after another, because this is the payoff the ten questions were
+            for. A run that earned nothing states it plainly and stays still: an
+            animation there would be celebrating the absence of a reward. */}
         <div
-          className="anim-fade-up mt-5 flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-dashed border-black/10 pt-4 dark:border-white/10"
+          className={`mt-5 flex flex-wrap items-center gap-x-4 gap-y-2 rounded-xl border-t border-dashed border-black/10 pt-4 dark:border-white/10 ${
+            earned > 0 ? 'anim-award-pulse' : 'anim-fade-up'
+          }`}
           style={stagger(4, 90)}
         >
           {earned > 0 ? (
-            <Badge tone="gold">{t.t('progress.earned', { n: earned })}</Badge>
+            <span className="flex items-center gap-2.5">
+              <Badge tone="gold">{t.t('progress.earned', { n: earned })}</Badge>
+              {/* One mark per point earned, arriving in sequence, so a perfect
+                  run is visibly worth twice what a nine is. */}
+              <span aria-hidden="true" className="flex items-center gap-1">
+                {Array.from({ length: earned }, (_, i) => (
+                  <span
+                    key={i}
+                    className="anim-award-mark h-2 w-2 rounded-full bg-gold-400 dark:bg-gold-300"
+                    /* Set directly rather than via `stagger`, whose 480ms cap
+                       would clamp both marks to the same delay and land them
+                       together — the sequence is the whole point here. */
+                    style={{ '--stagger': `${560 + i * 150}ms` } as CSSProperties}
+                  />
+                ))}
+              </span>
+            </span>
           ) : (
             <span className="text-sm text-black/55 dark:text-white/55">
               {t.t('progress.earnedNone')}
             </span>
           )}
-          <span className="ml-auto flex items-center gap-2.5">
+          <span
+            className={`ml-auto flex items-center gap-2.5 ${earned > 0 ? 'anim-award-rise' : ''}`}
+            style={stagger(8, 90)}
+          >
             <span className="font-mono text-xs tabular-nums text-black/55 dark:text-white/55">
               {t.t('progress.points', { n: points, max: CHAPTER_CAP })}
             </span>
@@ -322,6 +348,7 @@ export function Quiz({
               max={CHAPTER_CAP}
               label={t.t('progress.chapterLabel', { n: points, max: CHAPTER_CAP })}
               className="h-1.5 w-28"
+              barClassName={earned > 0 ? 'sheen sheen-run relative' : ''}
             />
           </span>
         </div>
@@ -329,7 +356,7 @@ export function Quiz({
         {mastered && (
           <p
             className="anim-pop anim-ring-flash mt-4 flex flex-wrap items-center gap-3 rounded-xl border border-gold-400/40 bg-gold-400/10 px-4 py-3 dark:bg-gold-400/[0.07]"
-            style={stagger(5, 90)}
+            style={stagger(10, 90)}
           >
             <Badge tone="gold">{t.t('progress.mastered')}</Badge>
             <span className="text-sm text-black/70 dark:text-white/70">

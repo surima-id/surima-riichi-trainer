@@ -59,13 +59,18 @@ describe('pointsForRun', () => {
 
 describe('recordRun', () => {
   it('accumulates points across runs', () => {
-    expect(chapterPoints(afterRuns('fu', 10, 3), 'fu')).toBe(6)
+    expect(chapterPoints(afterRuns('fu', 10, 2), 'fu')).toBe(4)
     expect(chapterPoints(afterRuns('fu', 9, 3), 'fu')).toBe(3)
   })
 
-  it('reaches the cap in six perfect runs', () => {
-    expect(isMastered(afterRuns('fu', 10, 5), 'fu')).toBe(false)
-    expect(isMastered(afterRuns('fu', 10, 6), 'fu')).toBe(true)
+  it('reaches the cap in three perfect runs', () => {
+    expect(isMastered(afterRuns('fu', 10, 2), 'fu')).toBe(false)
+    expect(isMastered(afterRuns('fu', 10, 3), 'fu')).toBe(true)
+  })
+
+  it('takes six near-perfect runs to master, against three clean ones', () => {
+    expect(isMastered(afterRuns('fu', 9, 5), 'fu')).toBe(false)
+    expect(isMastered(afterRuns('fu', 9, 6), 'fu')).toBe(true)
   })
 
   it('clamps at the cap rather than overflowing', () => {
@@ -115,10 +120,15 @@ describe('totals', () => {
     expect(totalXp(progress)).toBe(5)
   })
 
+  it('cap each chapter independently, so one cannot carry another', () => {
+    const progress = afterRuns('fu', 10, 10)
+    expect(totalXp(progress)).toBe(CHAPTER_CAP)
+  })
+
   it('reach 1 only when every listed chapter is capped', () => {
-    let progress = afterRuns('fu', 10, 6)
+    let progress = afterRuns('fu', 10, 3)
     expect(completionRatio(progress, ['fu', 'han'])).toBe(0.5)
-    for (let i = 0; i < 6; i++) {
+    for (let i = 0; i < 3; i++) {
       progress = recordRun(progress, { chapterId: 'han', quizId: 'q', score: 10 })
     }
     expect(completionRatio(progress, ['fu', 'han'])).toBe(1)
@@ -126,7 +136,7 @@ describe('totals', () => {
 
   it('count chapters never started against the total', () => {
     // Otherwise mastering one chapter and ignoring the rest would read as 100%.
-    const progress = afterRuns('fu', 10, 6)
+    const progress = afterRuns('fu', 10, 3)
     expect(completionRatio(progress, ['fu', 'han', 'score'])).toBeCloseTo(1 / 3)
   })
 

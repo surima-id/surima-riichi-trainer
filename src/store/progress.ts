@@ -16,10 +16,12 @@ export const QUIZ_LENGTH = 10
 /**
  * Points a chapter needs to count as mastered.
  *
- * Twelve is six perfect runs, or up to twelve near-perfect ones. Repetition is
- * the point: one good run proves you can do it once, not that it has stuck.
+ * Six is three perfect runs, or up to six near-perfect ones. Repetition is the
+ * point — one good run proves you can do it once, not that it has stuck — but
+ * three is enough to show that, and a ladder long enough to feel like a chore
+ * stops being an incentive to climb it.
  */
-export const CHAPTER_CAP = 12
+export const CHAPTER_CAP = 6
 
 const DrillStatsSchema = z.object({
   attempts: z.number().int().nonnegative(),

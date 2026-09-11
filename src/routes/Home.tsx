@@ -39,7 +39,7 @@ const DRILL_TITLE_KEYS: Record<string, MessageKey> = Object.fromEntries(
  * Mastery marks per card.
  *
  * One mark per perfect run rather than per point, because the marks should map to
- * something the player recognises doing — six clean runs — rather than to the
+ * something the player recognises doing — three clean runs — rather than to the
  * internal currency.
  */
 const PIP_COUNT = CHAPTER_CAP / 2
