@@ -464,7 +464,12 @@ export function Quiz({
                 onClick={() => toggle(choice.id)}
                 disabled={answered}
                 style={stagger(i, 50)}
-                className={`anim-fade-up flex items-center justify-center gap-2 rounded-xl border px-3 py-2.5 text-center text-sm transition duration-200 ${tone}`}
+                // Tall enough to be an easy target: a four-across row already
+                // makes each option narrow, so the height is what keeps it
+                // comfortably tappable on a phone. `min-h` rather than padding
+                // alone, so a one-line option and a wrapped two-line one are
+                // the same size and the row stays even.
+                className={`anim-fade-up flex min-h-[4.5rem] items-center justify-center gap-2 rounded-xl border px-3 py-4 text-center text-sm transition duration-200 ${tone}`}
               >
                 {choice.tiles && choice.tiles.length > 0 && (
                   <span className="flex shrink-0 items-end gap-0.5">

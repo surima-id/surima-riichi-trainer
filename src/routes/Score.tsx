@@ -98,7 +98,19 @@ export function ScoreLesson() {
       id="score"
       title={t.t('module.score.title')}
       subtitle={t.t('lesson.score.subtitle')}
-      drills={[GENERATORS.scorePick, GENERATORS.scoreCount]}
+      /**
+       * Two tracks rather than one mixed quiz.
+       *
+       * Both ask the same question — what does this hand pay — but one offers
+       * four payments to choose between and the other wants the figures typed.
+       * Interleaving them made a quiz whose score meant nothing in particular,
+       * and gave a learner no way to stay on the easier reading until the
+       * payment table was familiar.
+       */
+      tracks={[
+        { key: 'quiz.track.simple', drills: [GENERATORS.scorePick] },
+        { key: 'quiz.track.advanced', drills: [GENERATORS.scoreCount] },
+      ]}
     >
       <p>
         {t.t('lesson.score.p1a')} <strong>{t.t('lesson.score.p1base')}</strong>:

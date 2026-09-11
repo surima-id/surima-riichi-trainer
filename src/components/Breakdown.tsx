@@ -10,6 +10,51 @@ import { paymentOf } from '../engine/score'
 import { useT } from '../i18n'
 import { LineItem, SectionTitle, stagger } from './ui'
 
+/**
+ * The yaku a hand has, on their own.
+ *
+ * The yaku drills ask what pattern the tiles make, and stop there. `Breakdown`
+ * answers that and then keeps going into fu, the payment row and the totals —
+ * the right answer to a scoring question, and three sections of arithmetic a
+ * player was never asked about here. Dora are left out for the same reason the
+ * drills stop dealing them: they are flipped in the dead wall, not read off the
+ * hand, so they cannot be part of what the player was meant to spot.
+ */
+export function YakuList({ scored }: { scored: ScoredHand }) {
+  const t = useT()
+
+  if (!scored.valid) {
+    return (
+      <div className="rounded-lg border border-rose-500/30 bg-rose-500/5 p-4 text-sm">
+        {scored.reason && t.invalidReason(scored.reason)}
+      </div>
+    )
+  }
+
+  return (
+    <section>
+      <SectionTitle>{t.t('breakdown.yaku')}</SectionTitle>
+      <div>
+        {scored.yaku.map((y, i) => (
+          <LineItem
+            key={y.id}
+            style={stagger(i)}
+            label={t.romaji(y.id)}
+            detail={t.yaku(y.id)}
+            value={
+              y.yakuman
+                ? y.yakuman > 1
+                  ? t.t('unit.yakumanMultiple', { n: y.yakuman })
+                  : t.t('unit.yakuman')
+                : t.han(y.han)
+            }
+          />
+        ))}
+      </div>
+    </section>
+  )
+}
+
 export function Breakdown({ scored, dealer }: { scored: ScoredHand; dealer: boolean }) {
   const t = useT()
 

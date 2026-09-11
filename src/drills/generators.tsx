@@ -6,15 +6,15 @@
  * can never drift out of agreement with the scorer.
  */
 
-import { Breakdown } from '../components/Breakdown'
+import { Breakdown, YakuList } from '../components/Breakdown'
 import { Hand } from '../components/Hand'
 import { stagger } from '../components/ui'
 import { scoreHandFull } from '../engine/explain'
+import { decompose, waitInterpretations } from '../engine/parse'
 import { discardOptions, shanten, waits } from '../engine/shanten'
-import { paymentOf } from '../engine/score'
+import { type Payment, paymentOf } from '../engine/score'
 import {
   ALL_FACES,
-  NUM_FACES,
   ROUND_WINDS,
   type Tile,
   WINDS,
@@ -511,7 +511,17 @@ const yakuIdentification: Generator = {
           roundWind: built.context.roundWind,
         },
         choices: options,
-        explanation: <Breakdown scored={scored} dealer={built.dealer} />,
+        /**
+         * The yaku the hand has, and nothing else.
+         *
+         * The full `Breakdown` follows the yaku with the fu tally, the payment
+         * table row and the totals, which is the right answer to a scoring
+         * question and far too much for this one: a player who has just been
+         * asked to spot a pattern gets three sections of arithmetic they were
+         * never asked about. Those are what the han, fu and score drills teach,
+         * each in its own module.
+         */
+        explanation: <YakuList scored={scored} />,
         seed,
       } satisfies Question
     }
@@ -563,46 +573,83 @@ const yakuCompletion: Generator = {
       ]
 
       /**
-       * The named tile must be the only one that completes the hand.
+       * The answer is every tile the hand accepts, not one of them.
        *
-       * A hand waiting on several tiles has several right answers, and only one
-       * can be marked correct — so a multi-tile wait is not this question. The
-       * wait drill is where those belong.
+       * The five named waits are not all one tile wide: a ryanmen accepts two
+       * tiles and so does a shanpon, and a player who names only half of a
+       * two-sided wait has misread the shape. So the whole accepted set is the
+       * answer, and an option may carry two tiles.
        */
-      const winning = waits(tenpai, built.hand.calls.length)
-      if (winning.length !== 1 || face(winning[0]) !== face(built.hand.winTile)) continue
+      const winning = sortTiles(waits(tenpai, built.hand.calls.length))
+      /**
+       * At most two accepted tiles, because that is what the five named shapes
+       * accept: two for a ryanmen and a shanpon, one for a kanchan, penchan or
+       * tanki. A hand accepting three or more is several overlapping shapes at
+       * once — `2345678m` is three ryanmen read together — which is a wider
+       * reading than this drill asks for, and belongs to the wait drill.
+       */
+      if (winning.length === 0 || winning.length > 2) continue
+
+      /**
+       * One named shape, and one of the five.
+       *
+       * `waitInterpretations` reads a completed hand back into the shape that
+       * completed it. A hand that reads as a ryanmen *or* as a shanpon depending
+       * on how its tiles are grouped has no single shape to be waiting in, and
+       * the drill would be asking about a reading rather than about the hand —
+       * so anything ambiguous is skipped. Every shape the engine names is
+       * already one of the five, which is what the drill means to cover.
+       */
+      const shapes = new Set(
+        winning.flatMap((tile) =>
+          decompose({ concealed: [...tenpai, tile], calls: built.hand.calls, winTile: tile })
+            .flatMap((d) => waitInterpretations(d, tile))
+            .map((w) => w.type),
+        ),
+      )
+      if (shapes.size !== 1) continue
+      const shape = [...shapes][0]
 
       /**
        * The yaku named is the one worth the most han, which is the one a player
        * would actually be playing toward.
        */
       const target = [...shapeYaku].sort((a, b) => b.han - a.han)[0]
-      const answer = face(built.hand.winTile)
 
       /**
-       * Distractors are the neighbours of the real tile, then other tiles the
-       * hand already holds — the tiles a player reaches for when they have read
-       * the shape one position off, rather than arbitrary tiles that can be
-       * eliminated on sight.
+       * Every accepted tile must produce the named yaku.
        *
-       * `choices` shuffles whatever pool it is handed, so the pool itself is
-       * trimmed to the three best candidates here; passing a longer list in
-       * priority order would silently throw that order away. `ALL_FACES` only
-       * backfills a hand too narrow to supply three of its own.
+       * A two-sided wait can complete a hand two ways, and only one of them may
+       * carry the pattern the question names — a ryanmen where one end makes
+       * the hand all simples and the other lands a terminal in it. Asking
+       * "which tile completes tanyao" of such a hand has a narrower answer than
+       * the wait, so it is not this question.
        */
-      const near = [answer - 2, answer - 1, answer + 1, answer + 2].filter(
-        (f) => f >= 0 && f < NUM_FACES && suitOf(f) === suitOf(answer),
-      )
-      const held = tenpai.map(face)
-      const ranked = [...new Set([...near, ...held, ...ALL_FACES])].filter((f) => f !== answer)
-      const wrong = ranked.slice(0, 3)
+      const completesTarget = winning.every((tile) => {
+        const full = { concealed: [...tenpai, tile], calls: built.hand.calls, winTile: tile }
+        const check = scoreHandFull(full, built.context, { dealer: built.dealer })
+        return check.valid && check.yaku.some((y) => y.id === target.id)
+      })
+      if (!completesTarget) continue
+
+      /**
+       * The answer keys on strict notation, which is language-neutral and
+       * parses back to the same tiles either way. Distractors are wait-shaped
+       * sets of the same size, built from the neighbours of the real tiles, so
+       * neither the option count nor the tile count gives the answer away.
+       */
+      const answer = formatTiles(winning)
+      const wrong = waitDistractors(winning).map(formatTiles)
 
       return {
         drillId: 'yaku.complete',
         kind: 'choice',
-        prompt: t.t('drill.yaku.complete.prompt', {
-          yaku: `${t.romaji(target.id)} (${t.yaku(target.id)})`,
-        }),
+        prompt: t.t(
+          winning.length === 1
+            ? 'drill.yaku.complete.promptOne'
+            : 'drill.yaku.complete.promptMany',
+          { yaku: `${t.romaji(target.id)} (${t.yaku(target.id)})` },
+        ),
         hint: t.t('drill.yaku.complete.hint'),
         tiles: sortTiles(tenpai),
         calls: built.hand.calls,
@@ -610,18 +657,19 @@ const yakuCompletion: Generator = {
           seatWind: built.context.seatWind,
           roundWind: built.context.roundWind,
         },
-        // An option that draws its tile needs no notation beside it, so the
+        // An option that draws its tiles needs no notation beside them, so the
         // label is left empty and the picture carries the option.
-        choices: choices(rng, answer, wrong, String, () => '', 4, (f) => [f]),
+        choices: choices(rng, answer, wrong, (v) => v, () => '', 4, parseTiles),
         explanation: (
           <div className="space-y-3 text-sm">
             <p>
               {t.t('drill.yaku.complete.explain', {
-                tile: t.tile(answer),
+                tiles: t.notation(winning),
+                shape: t.wait(shape, 'long'),
                 yaku: `${t.romaji(target.id)} (${t.yaku(target.id)})`,
               })}
             </p>
-            <Breakdown scored={scored} dealer={built.dealer} />
+            <YakuList scored={scored} />
           </div>
         ),
         seed,
@@ -773,51 +821,68 @@ const scorePick: Generator = {
     if (!made) return tileRecognition.generate(seed, t)
     const { built, scored } = made
     const rng = makeRng(seed)
-    const total = scored.score.total
+
+    /**
+     * The answer is the payment, in the shape the payment is actually made.
+     *
+     * A self-draw is not collected as one number: the three opponents each pay,
+     * and a non-dealer's win takes more from the dealer than from the other two
+     * — "2000/3900" is the figure a player says and the figure they have to
+     * know. Offering the total instead would teach a number that never changes
+     * hands, so the options here are `Payment` values rendered the way the
+     * typed drill expects them written.
+     */
+    const answer = paymentOf(scored.score, built.context.tsumo, built.dealer)
 
     /**
      * Distractors are the neighbouring rows of the payment table, not arbitrary
      * numbers. Doubling and halving are where a real miscount lands — one han
      * out in either direction — and 1.5x catches the dealer/non-dealer mix-up,
-     * which is the other classic error. Rounded to 100, the granularity every
-     * payment in the game uses, so no option is identifiable as the odd one out
-     * by its shape alone.
+     * which is the other classic error. Every part of a payment is scaled
+     * together, so a wrong option is a wrong row rather than an inconsistent
+     * pair of figures, and each is rounded to the 100 every payment uses.
      */
     const round100 = (n: number) => Math.max(100, Math.round(n / 100) * 100)
-    const near = [total * 2, total / 2, total * 1.5, total * 4, total / 4]
-      .map(round100)
-      .filter((n) => n !== total)
+    const scale = (payment: Payment, factor: number): Payment => {
+      switch (payment.kind) {
+        case 'ron':
+          return { kind: 'ron', amount: round100(payment.amount * factor) }
+        case 'tsumo-dealer':
+          return { kind: 'tsumo-dealer', each: round100(payment.each * factor) }
+        case 'tsumo-nondealer':
+          return {
+            kind: 'tsumo-nondealer',
+            each: round100(payment.each * factor),
+            fromDealer: round100(payment.fromDealer * factor),
+          }
+      }
+    }
+    const near = [2, 0.5, 1.5, 4, 0.25].map((factor) => scale(answer, factor))
 
     return {
       drillId: 'score.pick',
       kind: 'choice',
       prompt: t.t('drill.score.pick.prompt'),
       hint: t.t(
-        built.context.tsumo ? 'drill.score.pick.hintTsumo' : 'drill.score.pick.hintRon',
+        built.context.tsumo
+          ? built.dealer
+            ? 'drill.score.pick.hintTsumoDealer'
+            : 'drill.score.pick.hintTsumoNonDealer'
+          : 'drill.score.pick.hintRon',
       ),
       tiles: built.hand.concealed,
       calls: built.hand.calls,
       winTile: built.hand.winTile,
       context: handContext(built, t),
-      choices: choices(rng, total, near, String, (n) => t.t('unit.points', { n })),
+      // Keyed on the rendered figure, which is what makes two options the same
+      // option: a distractor that scaled onto the real payment is a duplicate.
+      choices: choices(rng, answer, near, t.payment, t.payment),
       explanation: <Breakdown scored={scored} dealer={built.dealer} />,
       seed,
     }
   },
 }
 
-/**
- * The scoring drill, harder half: read a hand, then state what it pays.
- *
- * Typed rather than multiple-choice, and asked as *payments* rather than as a
- * total. Both follow from what the drill is for. Picking 8000 from four options
- * can be done by elimination without counting anything; typing it cannot. And a
- * tsumo is collected as separate payments — "2000/3900" is what you say at the
- * table, while its sum is a number nobody ever announces.
- *
- * Unlike the han and fu drills, this one does not hand over the han and fu in a
- * hint. Counting them is the work.
- */
 const scoreCount: Generator = {
   id: 'score.total',
   titleKey: 'drill.score.total.title',

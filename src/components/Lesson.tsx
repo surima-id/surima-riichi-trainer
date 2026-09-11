@@ -9,15 +9,31 @@ import { type ReactNode, useCallback, useEffect, useState } from 'react'
 import { Quiz } from './Quiz'
 import { type Generator } from '../drills/types'
 import { Button, Card, Prose, SectionTitle, stagger } from './ui'
-import { useT } from '../i18n'
+import { type MessageKey, useT } from '../i18n'
 import { useProgress } from '../store/useProgress'
+
+/**
+ * One named quiz a lesson offers, when it offers more than one.
+ *
+ * A module whose drills differ in difficulty rather than in subject splits into
+ * tracks instead of interleaving: mixing a multiple-choice question with one
+ * that wants four figures typed makes a single quiz that is two exercises
+ * wearing one score. Each track keeps its own best score, because they are not
+ * the same achievement.
+ */
+export interface Track {
+  key: MessageKey
+  drills: Generator[]
+}
 
 export interface LessonProps {
   id: string
   title: string
   subtitle: string
   children: ReactNode
-  drills: Generator[]
+  /** The single quiz this lesson drills, or `tracks` for a choice of several. */
+  drills?: Generator[]
+  tracks?: Track[]
   /**
    * Content placed below the quiz, outside the lesson body.
    *
@@ -28,9 +44,15 @@ export interface LessonProps {
   after?: ReactNode
 }
 
-export function Lesson({ id, title, subtitle, children, drills, after }: LessonProps) {
+export function Lesson({ id, title, subtitle, children, drills, tracks, after }: LessonProps) {
   const t = useT()
   const { readLesson } = useProgress()
+
+  // One unnamed track is the ordinary case, so a lesson with a single quiz says
+  // `drills` and never has to name it.
+  const allTracks: Track[] = tracks ?? []
+  const [trackIndex, setTrackIndex] = useState(0)
+  const activeDrills = allTracks.length > 0 ? allTracks[trackIndex].drills : (drills ?? [])
 
   /**
    * Once the quiz starts, the lesson gets out of its way.
@@ -74,6 +96,33 @@ export function Lesson({ id, title, subtitle, children, drills, after }: LessonP
       <section className="anim-fade-up space-y-4" style={stagger(2, 90)}>
         {!quizRunning && <SectionTitle>{t.t('quiz.practice')}</SectionTitle>}
 
+        {/* The track picker, shown only while choosing. Once a quiz is running
+            the tabs would offer to throw the run away mid-question, so they go
+            with the rest of the page furniture. */}
+        {!quizRunning && allTracks.length > 1 && (
+          <div
+            className="flex flex-wrap gap-1.5 rounded-xl border border-black/10 bg-black/[0.03] p-1.5 dark:border-white/10 dark:bg-white/[0.04]"
+            role="tablist"
+          >
+            {allTracks.map((track, i) => (
+              <button
+                key={track.key}
+                type="button"
+                role="tab"
+                aria-selected={i === trackIndex}
+                onClick={() => setTrackIndex(i)}
+                className={`rounded-lg px-4 py-2 text-sm font-semibold transition duration-200 ${
+                  i === trackIndex
+                    ? 'bg-white text-black shadow-sm dark:bg-felt-700 dark:text-white'
+                    : 'text-black/55 hover:text-black dark:text-white/55 dark:hover:text-white'
+                }`}
+              >
+                {t.t(track.key)}
+              </button>
+            ))}
+          </div>
+        )}
+
         {quizRunning && (
           <div className="flex flex-wrap items-center gap-3">
             <Button variant="secondary" onClick={() => setClueOpen((open) => !open)}>
@@ -96,7 +145,9 @@ export function Lesson({ id, title, subtitle, children, drills, after }: LessonP
           </Card>
         )}
 
-        <Quiz generators={drills} onRunningChange={handlePhase} />
+        {/* Keyed on the track so switching tabs mounts a fresh quiz rather
+            than carrying the previous one's phase and answers across. */}
+        <Quiz key={trackIndex} generators={activeDrills} onRunningChange={handlePhase} />
       </section>
 
       {after && (

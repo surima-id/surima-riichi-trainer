@@ -140,6 +140,8 @@ export const messages = {
   'breakdown.youCollect': 'You collect',
 
   // ---- Quiz ----
+  'quiz.track.simple': 'Score (Simple)',
+  'quiz.track.advanced': 'Score (Advanced)',
   'quiz.practice': 'Practice',
   'quiz.clue': 'Clue',
   'quiz.clueHide': 'Hide clue',
@@ -320,10 +322,11 @@ export const messages = {
 
   'drill.yaku.complete.title': 'Complete the yaku',
   'drill.yaku.complete.desc': 'Find the tile that finishes a named pattern.',
-  'drill.yaku.complete.prompt': 'This hand is one tile from {yaku}. Which tile completes it?',
+  'drill.yaku.complete.promptOne': 'This hand is one tile from {yaku}. Which tile completes it?',
+  'drill.yaku.complete.promptMany': 'This hand is one tile from {yaku}. Which tiles complete it?',
   'drill.yaku.complete.hint':
     'Find the shape that is still unfinished, then check the tile that finishes it does not break the pattern.',
-  'drill.yaku.complete.explain': '{tile} completes the hand as {yaku}.',
+  'drill.yaku.complete.explain': 'The hand accepts {tiles} — a {shape} wait — and completes as {yaku}.',
   'drill.han.count.title': 'Count the han',
   'drill.han.count.desc': 'Total a hand\u2019s yaku, remembering the open-hand penalty.',
   'drill.han.count.prompt': 'How many han is this hand worth?',
@@ -339,7 +342,8 @@ export const messages = {
   'drill.score.pick.desc': 'Recognise the total a hand collects.',
   'drill.score.pick.prompt': 'How many points can you score with this hand?',
   'drill.score.pick.hintRon': 'Ron — the discarder pays the whole amount. Count han and fu, then find the row.',
-  'drill.score.pick.hintTsumo': 'Tsumo — add up what all three opponents pay between them.',
+  'drill.score.pick.hintTsumoDealer': 'Tsumo as dealer — all three opponents pay the same amount each.',
+  'drill.score.pick.hintTsumoNonDealer': 'Tsumo as a non-dealer — written as what each opponent pays, then the dealer’s larger share.',
   'drill.score.total.title': 'What does it pay?',
   'drill.score.total.desc': 'Turn han and fu into points.',
   'drill.score.total.prompt': 'How many points is this hand worth?',
