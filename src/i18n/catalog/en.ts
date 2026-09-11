@@ -179,6 +179,20 @@ export const messages = {
   'progress.overallLabel': 'Overall mastery: {n}%',
   'progress.xp': '{n} points',
 
+  // ---- Share ----
+  'share.button': 'Share',
+  'share.save': 'Save image',
+  'share.close': 'Close',
+  'share.title': 'Share your achievement',
+  'share.sizeSquare': 'Square',
+  'share.sizeStory': 'Story',
+  'share.preparing': 'Preparing image…',
+  'share.failed': 'Could not prepare the image.',
+  'share.certMastered': 'Chapter mastered',
+  'share.certCourse': 'Whole course mastered',
+  'share.certProgress': '{n}% mastered',
+  'share.shareText': "I'm learning riichi mahjong at {site}",
+
   // ---- Home ----
   'home.streak': '{n} day streak',
   'home.bestStreak': 'Best: {n}',

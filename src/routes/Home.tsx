@@ -23,6 +23,9 @@ import {
   weakestDrills,
 } from '../store/progress'
 import { useProgress } from '../store/useProgress'
+import { ShareCertificate } from '../components/ShareCertificate'
+import { courseSubject } from '../share/subject'
+import { useSubjectStrings } from '../share/useSubject'
 
 /** One tile from each suit, for the decorative drift behind the wordmark. */
 const HERO_TILES = parseTiles('1s5p7m')
@@ -54,6 +57,7 @@ export function Home() {
   const mastered = (id: string) => isMastered(progress, id)
   const xp = totalXp(progress)
   const percent = Math.round(completionRatio(progress, CHAPTER_IDS) * 100)
+  const shareStrings = useSubjectStrings(percent)
 
   return (
     <div className="mx-auto max-w-5xl space-y-10 px-4 py-12 sm:px-6">
@@ -85,6 +89,15 @@ export function Home() {
           {t.t('app.tagline')}
         </p>
       </header>
+
+      {xp > 0 && (
+        <div className="anim-fade-up flex flex-wrap items-center gap-3" style={stagger(1, 90)}>
+          <span className="text-sm text-black/55 dark:text-white/55">
+            {percent === 100 ? t.t('share.certCourse') : t.t('share.certProgress', { n: percent })}
+          </span>
+          <ShareCertificate subject={courseSubject(progress, CHAPTER_IDS, shareStrings)} />
+        </div>
+      )}
 
       {progress.streak.current > 0 && (
         <Card className="anim-fade-up" style={stagger(1, 90)}>

@@ -12,6 +12,9 @@ import { Badge, Button, Card, Meter, Prose, SectionTitle, stagger } from './ui'
 import { type MessageKey, useT } from '../i18n'
 import { useProgress } from '../store/useProgress'
 import { CHAPTER_CAP, chapterPoints, isMastered } from '../store/progress'
+import { ShareCertificate } from './ShareCertificate'
+import { chapterSubject } from '../share/subject'
+import { useSubjectStrings } from '../share/useSubject'
 
 /**
  * One named quiz a lesson offers, when it offers more than one.
@@ -71,6 +74,7 @@ export function Lesson({ id, title, subtitle, children, drills, tracks }: Lesson
 
   const points = chapterPoints(progress, id)
   const mastered = isMastered(progress, id)
+  const shareStrings = useSubjectStrings(Math.round((points / CHAPTER_CAP) * 100))
 
   const body = <Prose>{children}</Prose>
 
@@ -85,9 +89,14 @@ export function Lesson({ id, title, subtitle, children, drills, tracks }: Lesson
             a bar counting what this run is about to change is a distraction
             mid-question. */}
         {!quizRunning && (
-          <div className="mt-3 flex items-center gap-3">
+          <div className="mt-3 flex flex-wrap items-center gap-3">
             {mastered ? (
-              <Badge tone="gold">{t.t('progress.mastered')}</Badge>
+              <>
+                <Badge tone="gold">{t.t('progress.mastered')}</Badge>
+                <ShareCertificate
+                  subject={chapterSubject(progress, id, title, shareStrings)}
+                />
+              </>
             ) : (
               <>
                 <Meter
@@ -169,6 +178,7 @@ export function Lesson({ id, title, subtitle, children, drills, tracks }: Lesson
           key={trackIndex}
           generators={activeDrills}
           chapterId={id}
+          chapterTitle={title}
           onRunningChange={handlePhase}
         />
       </section>

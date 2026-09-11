@@ -170,6 +170,20 @@ export const messages = {
   'progress.overallLabel': 'Penguasaan keseluruhan: {n}%',
   'progress.xp': '{n} poin',
 
+  // ---- Share ----
+  'share.button': 'Bagikan',
+  'share.save': 'Simpan gambar',
+  'share.close': 'Tutup',
+  'share.title': 'Bagikan pencapaianmu',
+  'share.sizeSquare': 'Persegi',
+  'share.sizeStory': 'Story',
+  'share.preparing': 'Menyiapkan gambar…',
+  'share.failed': 'Gagal menyiapkan gambar.',
+  'share.certMastered': 'Bab ini terkuasai',
+  'share.certCourse': 'Seluruh kursus terkuasai',
+  'share.certProgress': '{n}% dikuasai',
+  'share.shareText': 'Aku belajar riichi mahjong di {site}',
+
   // ---- Home ----
   'home.streak': '{n} Hari berturut-turut',
   'home.bestStreak': 'Terbaik: {n}',

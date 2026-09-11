@@ -18,6 +18,9 @@ import { Hand } from './Hand'
 import { HandContext } from './HandContext'
 import { Tile } from './Tile'
 import { Badge, Button, Card, Meter, stagger } from './ui'
+import { ShareCertificate } from './ShareCertificate'
+import { chapterSubject } from '../share/subject'
+import { useSubjectStrings } from '../share/useSubject'
 
 type Phase = 'intro' | 'answering' | 'answered' | 'results'
 
@@ -115,11 +118,14 @@ function buildQuestions(
 export function Quiz({
   generators,
   chapterId,
+  chapterTitle,
   onRunningChange,
 }: {
   generators: Generator[]
   /** The chapter this quiz drills, so a finished run credits its mastery. */
   chapterId: string
+  /** The chapter's own title, for the shareable card on a mastered run. */
+  chapterTitle: string
   /**
    * Fires when the quiz starts and stops, so the page around it can clear the
    * lesson prose out of the way while questions are being answered. Also fires
@@ -143,6 +149,12 @@ export function Quiz({
   const [payMain, setPayMain] = useState('')
   const [payDealer, setPayDealer] = useState('')
   const [openReview, setOpenReview] = useState<number | null>(null)
+
+  // Called here rather than in the results branch: hooks cannot sit behind a
+  // condition, and the percentage a chapter card shows is its own progress.
+  const shareStrings = useSubjectStrings(
+    Math.round((chapterPoints(progress, chapterId) / CHAPTER_CAP) * 100),
+  )
 
   const questions = useMemo(
     () => buildQuestions(generators, runSeed, t),
@@ -427,8 +439,15 @@ export function Quiz({
           </ul>
         </div>
 
-        <div className="mt-5">
+        <div className="mt-5 flex flex-wrap items-center gap-3">
           <Button onClick={restart}>{t.t('quiz.retry')}</Button>
+          {/* Offered only on the run that earned mastery: a share button on an
+              ordinary result would be asking to post a middling score. */}
+          {mastered && (
+            <ShareCertificate
+              subject={chapterSubject(progress, chapterId, chapterTitle, shareStrings)}
+            />
+          )}
         </div>
       </Card>
     )
