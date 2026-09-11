@@ -189,7 +189,9 @@ const tileRecognition: Generator = {
       kind: 'choice',
       prompt: t.t('drill.tiles.name.prompt'),
       tiles: [tile],
-      choices: choices(rng, tile, ALL_FACES, String, t.tile),
+      // Labelled with the Japanese term beside the localized name, so the drill
+      // teaches the word a player will hear at a table as well as what it means.
+      choices: choices(rng, tile, ALL_FACES, String, t.tileWithTerm),
       explanation: (
         <p className="text-sm">
           {t.t(isHonorTile ? 'drill.tiles.name.explainHonor' : 'drill.tiles.name.explainSuited', {

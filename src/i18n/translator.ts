@@ -24,6 +24,7 @@ import { messages as enMessages } from './catalog/en'
 import { YAKU_ROMAJI } from './catalog/romaji'
 import { interpolate } from './format'
 import { nameTile } from './tiles'
+import { tileTerm } from './tileTerm'
 import { type Lang, type MessageKey, type Params } from './types'
 
 const CATALOGS: Record<Lang, Record<string, string>> = {
@@ -35,6 +36,13 @@ export interface Translator {
   readonly lang: Lang
   t(key: MessageKey, params?: Params): string
   tile(tile: Tile): string
+  /**
+   * The tile's name with its Japanese term: `Naga Hijau (Hatsu)`.
+   *
+   * For answer labels, where the drill is teaching the word a player will
+   * actually hear alongside what it means. Plain `tile` everywhere else.
+   */
+  tileWithTerm(tile: Tile): string
   suit(suit: Suit): string
   yaku(id: YakuId): string
   romaji(id: YakuId): string
@@ -54,6 +62,7 @@ export function createTranslator(lang: Lang): Translator {
   const t = (key: MessageKey, params?: Params) => interpolate(m[key as string] ?? String(key), params)
 
   const tile = (value: Tile) => nameTile(lang, describeTile(value), m)
+  const tileWithTerm = (value: Tile) => `${tile(value)} (${tileTerm(value)})`
 
   /**
    * Hand notation for display, with the honors spelled out.
@@ -93,6 +102,7 @@ export function createTranslator(lang: Lang): Translator {
     lang,
     t,
     tile,
+    tileWithTerm,
     suit: (suit) => m[`tile.suit.${suit}`],
     yaku: (id) => m[`yaku.${id}`],
     romaji: (id) => YAKU_ROMAJI[id],
