@@ -64,7 +64,17 @@ export interface Question {
     seatWind?: Tile
     roundWind?: Tile
     tsumo?: boolean
-    /** Already-translated labels for extra conditions, e.g. a riichi declaration. */
+    /**
+     * Whether the hand declared riichi, and whether it was a double riichi.
+     *
+     * A boolean rather than another entry in `flags`, because the strip draws a
+     * riichi as the stick a player actually puts on the table. A translated
+     * label cannot be matched on without comparing display text, which is the
+     * thing the rest of the app is careful never to do.
+     */
+    riichi?: boolean
+    doubleRiichi?: boolean
+    /** Already-translated labels for extra conditions, e.g. ippatsu. */
     flags?: string[]
   }
   choices?: Choice[]

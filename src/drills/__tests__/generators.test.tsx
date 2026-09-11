@@ -161,12 +161,14 @@ describe.each(ALL_GENERATORS.map((g) => [g.id, g] as const))('%s', (_id, generat
    */
   it('flips an ura indicator exactly when the hand declared riichi', () => {
     const t = createTranslator('en')
-    const riichiLabels = [t.t('context.riichi'), t.t('yaku.double-riichi')]
     for (const seed of SEEDS) {
       const q = generator.generate(seed, t)
       const context = q.context
       if (!context) continue
-      const declared = (context.flags ?? []).some((flag) => riichiLabels.includes(flag))
+      // Read off the boolean rather than by matching a translated label: the
+      // strip draws riichi as a stick, so there is no longer a word to match,
+      // and a test that compared display text would only have to change again.
+      const declared = (context.riichi ?? false) || (context.doubleRiichi ?? false)
       const ura = (context.uraIndicators ?? []).length
       expect(ura > 0, `seed ${seed}: riichi=${declared} but ${ura} ura indicator(s)`).toBe(declared)
     }

@@ -34,17 +34,9 @@ export interface LessonProps {
   /** The single quiz this lesson drills, or `tracks` for a choice of several. */
   drills?: Generator[]
   tracks?: Track[]
-  /**
-   * Content placed below the quiz, outside the lesson body.
-   *
-   * The body above is withdrawn while a quiz runs, which is right for prose the
-   * quiz is testing and wrong for a reference tool — so anything that should
-   * stay on screen throughout goes here instead.
-   */
-  after?: ReactNode
 }
 
-export function Lesson({ id, title, subtitle, children, drills, tracks, after }: LessonProps) {
+export function Lesson({ id, title, subtitle, children, drills, tracks }: LessonProps) {
   const t = useT()
   const { readLesson } = useProgress()
 
@@ -150,11 +142,6 @@ export function Lesson({ id, title, subtitle, children, drills, tracks, after }:
         <Quiz key={trackIndex} generators={activeDrills} onRunningChange={handlePhase} />
       </section>
 
-      {after && (
-        <section className="anim-fade-up" style={stagger(3, 90)}>
-          {after}
-        </section>
-      )}
     </article>
   )
 }

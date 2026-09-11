@@ -1,7 +1,6 @@
 import { Hand } from '../components/Hand'
 import { Example, Lesson } from '../components/Lesson'
 import { LessonHeading } from '../components/ui'
-import { UkeireCalculator } from '../components/Ukeire'
 import { GENERATORS } from '../drills/generators'
 import { parseTiles } from '../engine/tiles'
 import { useT } from '../i18n'
@@ -14,11 +13,6 @@ export function EfficiencyLesson() {
       title={t.t('module.efficiency.title')}
       subtitle={t.t('lesson.efficiency.subtitle')}
       drills={[GENERATORS.efficiencyDrill]}
-      /* The calculator sits below the drill rather than inside the lesson body,
-         which `Lesson` withdraws once a quiz starts. A reference tool is the one
-         thing worth keeping on screen while practising: a player who has just
-         been told their discard was wrong wants to try the alternative. */
-      after={<UkeireCalculator />}
     >
       <p>{t.t('lesson.efficiency.p1')}</p>
       <p>

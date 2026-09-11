@@ -552,20 +552,7 @@ export const messages = {
   'lesson.efficiency.order3': 'Bila punya lima blok padahal hanya butuh empat, lepaskan blok terlemah sepenuhnya.',
   'lesson.efficiency.order4': 'Di antara dua bentuk setara, pertahankan yang menerima lebih banyak tile.',
   'lesson.efficiency.closing': 'Kuis di bawah mengurutkan tiap buangan berdasarkan penerimaan, jadi kamu bisa melihat persis harga tiap pilihan. Efisiensi bukan keseluruhan permainan — keamanan dan nilai tangan juga penting — tetapi ia fondasi tempat semuanya berdiri.',
-  // ---- Kalkulator ukeire ----
-  'ukeire.title': 'Kalkulator ukeire',
-  'ukeire.intro': 'Ketik tangan empat belas tile mana pun, lalu tiap buangan diurutkan berdasarkan penerimaannya — shanten yang tersisa, dan persis tile apa saja yang mendekatkan tangan, lengkap dengan sisa tiap jenisnya.',
-  'ukeire.inputLabel': 'Notasi tangan',
-  'ukeire.inputHelp': 'Angka lalu huruf jenis: m untuk karakter, p untuk lingkaran, s untuk bambu, z untuk honor (1z–4z angin Timur sampai Utara, 5z–7z naga). Angka 0 berarti lima merah. Total empat belas tile.',
-  'ukeire.errorEmpty': 'Masukkan tangan yang mau dianalisis.',
-  'ukeire.errorCount': 'Pertanyaan buangan butuh empat belas tile — tiga belas yang kamu pegang ditambah satu yang baru ditarik. Tangan ini berisi {n}.',
-  'ukeire.errorFive': 'Tiap tile hanya ada empat, sedangkan tangan ini memuat lima {tile}.',
-  'ukeire.complete': 'Tangan ini sudah lengkap, jadi tidak ada yang perlu dibuang.',
+  // ---- Ukeire (tabel buangan di latihan efisiensi) ----
   'ukeire.ready': 'siap',
   'ukeire.away': '{n} lagi',
-  'ukeire.bestReady': 'Buang {tile} dan tangan menjadi siap, menerima {tiles}.',
-  'ukeire.bestAway': 'Buang {tile} dan tangan berjarak {n} lagi, menerima {tiles}.',
-  'ukeire.showWorse': 'Tampilkan {n} buangan lain yang mundur satu langkah',
-  'ukeire.worseNote': 'Buangan ini membuat tangan makin jauh dari siap. Penerimaannya lebih besar justru karena lebih jauh — penerimaan hanya layak dibandingkan antar buangan yang menyisakan shanten sama.',
-  'ukeire.caveat': 'Penerimaan hanya menganggap tile di tanganmu sendiri sebagai yang terlihat. Di meja sungguhan, buangan dan meld terbuka mengurangi lebih banyak lagi dari tembok — dan efisiensi cuma satu bahan pertimbangan, bukan keseluruhan keputusan.',
 }

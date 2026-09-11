@@ -630,25 +630,7 @@ export const messages = {
   'lesson.efficiency.closing':
     'The quiz below ranks every discard by acceptance, so you can see exactly what each choice costs. Efficiency is not the whole game — safety and hand value matter too — but it is the foundation everything else sits on.',
 
-  // ---- Ukeire calculator ----
-  'ukeire.title': 'Ukeire calculator',
-  'ukeire.intro':
-    'Type any fourteen-tile hand and every discard is ranked by what it accepts — the shanten it leaves, and the exact tiles that would bring it closer, with how many of each are still unseen.',
-  'ukeire.inputLabel': 'Hand notation',
-  'ukeire.inputHelp':
-    'Digits then a suit letter: m for characters, p for circles, s for bamboo, z for honors (1z–4z are the winds East to North, 5z–7z the dragons). A 0 is a red five. Fourteen tiles in all.',
-  'ukeire.errorEmpty': 'Enter a hand to analyse.',
-  'ukeire.errorCount':
-    'A discard question needs fourteen tiles — the thirteen you hold plus the one you just drew. This hand has {n}.',
-  'ukeire.errorFive': 'There are only four of each tile, and this hand holds five {tile}.',
-  'ukeire.complete': 'This hand is already complete, so there is nothing to discard.',
+  // ---- Ukeire (the discard table in the efficiency drill) ----
   'ukeire.ready': 'ready',
   'ukeire.away': '{n} away',
-  'ukeire.bestReady': 'Discard {tile} and the hand is ready, accepting {tiles}.',
-  'ukeire.bestAway': 'Discard {tile} and the hand is {n} away, accepting {tiles}.',
-  'ukeire.showWorse': 'Show {n} more discards that give up a step',
-  'ukeire.worseNote':
-    'These leave the hand further from ready. They accept more tiles because they are further away — acceptance is only worth comparing between discards that leave the same shanten.',
-  'ukeire.caveat':
-    'Acceptance counts only the tiles in your own hand as seen. At a real table, discards and open melds take more of them off the wall — and efficiency is one input to a discard, not the whole decision.',
 } satisfies Messages

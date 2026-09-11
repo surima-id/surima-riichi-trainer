@@ -7,8 +7,8 @@
  */
 
 import { Breakdown, YakuList } from '../components/Breakdown'
+import { DiscardTable } from '../components/DiscardTable'
 import { Hand } from '../components/Hand'
-import { stagger } from '../components/ui'
 import { scoreHandFull } from '../engine/explain'
 import { decompose, waitInterpretations } from '../engine/parse'
 import { discardOptions, shanten, waits } from '../engine/shanten'
@@ -85,9 +85,9 @@ function choices<T>(
 function handContext(built: ReturnType<typeof buildScoringHand>, t: Translator) {
   if (!built) return undefined
   const { context } = built
+  // Riichi is passed as a flag rather than as a label, so the strip can draw the
+  // stick a declaration actually puts on the table.
   const flags: string[] = []
-  if (context.doubleRiichi) flags.push(t.t('yaku.double-riichi'))
-  else if (context.riichi) flags.push(t.t('context.riichi'))
   if (context.ippatsu) flags.push(t.t('context.ippatsu'))
 
   return {
@@ -98,6 +98,8 @@ function handContext(built: ReturnType<typeof buildScoringHand>, t: Translator) 
     seatWind: context.seatWind,
     roundWind: context.roundWind,
     tsumo: context.tsumo,
+    riichi: context.riichi ?? false,
+    doubleRiichi: context.doubleRiichi ?? false,
     flags,
   }
 }
@@ -1009,34 +1011,7 @@ const efficiencyDrill: Generator = {
                 },
               )}
             </p>
-            <div>
-              <p className="mb-1.5 text-black/60 dark:text-white/60">
-                {t.t('drill.efficiency.discard.ranked')}
-              </p>
-              <ul className="space-y-1">
-                {options.slice(0, 6).map((option, i) => (
-                  <li
-                    key={option.tile}
-                    // The best discard is the answer; the rest are context, so
-                    // only the first row is set at full strength.
-                    className={`anim-fade-up flex justify-between gap-4 rounded-lg px-2 py-1 font-mono text-sm ${
-                      i === 0
-                        ? 'bg-emerald-500/10 font-semibold text-emerald-800 dark:text-emerald-300'
-                        : ''
-                    }`}
-                    style={stagger(i, 45)}
-                  >
-                    <span>{t.notation([option.tile])}</span>
-                    <span className={i === 0 ? '' : 'text-black/55 dark:text-white/55'}>
-                      {option.shanten === 0
-                        ? t.t('drill.efficiency.discard.rowReady')
-                        : t.t('drill.efficiency.discard.rowAway', { n: option.shanten })}{' '}
-                      · {t.t('unit.tiles', { n: option.tilesLeft })}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </div>
+            <DiscardTable options={options} />
           </div>
         ),
         seed,

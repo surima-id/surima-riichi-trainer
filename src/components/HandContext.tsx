@@ -42,6 +42,39 @@ function IndicatorRow({ tiles }: { tiles: TileValue[] }) {
   )
 }
 
+/**
+ * A riichi stick, drawn rather than vendored.
+ *
+ * A declaration puts a physical 1000-point stick on the table, and that stick
+ * is how a player recognizes a riichi across the felt — a white bar with a
+ * single red dot at its centre. Saying "Riichi" in words made the one field
+ * that changes how a hand is scored look like every other label in the strip.
+ *
+ * Inline SVG because the shape is two rectangles and a circle: an asset would
+ * cost a request to say less than this does, and the colours here follow the
+ * theme rather than being baked into a file.
+ */
+function RiichiStick() {
+  return (
+    <svg
+      viewBox="0 0 64 14"
+      aria-hidden="true"
+      className="h-3.5 w-16 shrink-0 drop-shadow-sm"
+    >
+      <rect
+        x="0.5"
+        y="0.5"
+        width="63"
+        height="13"
+        rx="3"
+        className="fill-white stroke-black/25 dark:stroke-black/40"
+        strokeWidth="1"
+      />
+      <circle cx="32" cy="7" r="3.25" className="fill-rose-600" />
+    </svg>
+  )
+}
+
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <span className="flex items-center gap-2">
@@ -63,7 +96,10 @@ export interface HandContextProps {
   seatWind?: TileValue
   roundWind?: TileValue
   tsumo?: boolean
-  /** Extra conditions worth stating, e.g. a riichi declaration. */
+  /** Draws the riichi stick, and names it a double riichi when it was one. */
+  riichi?: boolean
+  doubleRiichi?: boolean
+  /** Extra conditions worth stating, e.g. ippatsu. */
   flags?: string[]
 }
 
@@ -73,6 +109,8 @@ export function HandContext({
   seatWind,
   roundWind,
   tsumo,
+  riichi = false,
+  doubleRiichi = false,
   flags = [],
 }: HandContextProps) {
   const t = useT()
@@ -99,6 +137,12 @@ export function HandContext({
       {roundWind !== undefined && (
         <Field label={t.t('context.roundWind')}>
           <span className="text-sm font-semibold">{t.tile(roundWind)}</span>
+        </Field>
+      )}
+
+      {(riichi || doubleRiichi) && (
+        <Field label={t.t(doubleRiichi ? 'yaku.double-riichi' : 'context.riichi')}>
+          <RiichiStick />
         </Field>
       )}
 
