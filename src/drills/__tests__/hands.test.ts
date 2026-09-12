@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { buildRandomHand, buildScoringHand } from '../hands'
+import { buildRandomHand, buildScoringHand, buildThirteenOrphans } from '../hands'
 import { makeRng } from '../random'
 import { scoreHandFull } from '../../engine/explain'
 import { decompose } from '../../engine/parse'
-import { face, isSimple, toCounts } from '../../engine/tiles'
+import { face, isRed, isSimple, isTerminalOrHonor, rankOf, toCounts } from '../../engine/tiles'
 
 describe('makeRng', () => {
   it('is deterministic for a given seed', () => {
@@ -107,6 +107,92 @@ describe('buildRandomHand', () => {
     const a = buildRandomHand(makeRng(123))
     const b = buildRandomHand(makeRng(123))
     expect(a?.hand.concealed).toEqual(b?.hand.concealed)
+  })
+})
+
+describe('buildRandomHand slot options', () => {
+  it('places every named triplet', () => {
+    // Daisuushii: all four winds, which is also the case that forced the
+    // reservation pass — a random triplet spending a wind first leaves the
+    // recipe unbuildable under a three-copy cap.
+    const built = buildRandomHand(makeRng(5), { fixedTriplets: [27, 28, 29, 30], triplets: 4 })
+    expect(built).not.toBeNull()
+    const counts = toCounts([...built!.hand.concealed, ...built!.hand.calls.flatMap((c) => c.tiles)])
+    for (const wind of [27, 28, 29, 30]) expect(counts[wind]).toBeGreaterThanOrEqual(3)
+  })
+
+  it('places every named run, repeats included', () => {
+    // Iipeiko: the same run twice, which a filter cannot express.
+    const built = buildRandomHand(makeRng(9), { fixedRuns: [3, 3], triplets: 0 })
+    expect(built).not.toBeNull()
+    const counts = toCounts(built!.hand.concealed)
+    for (const offset of [0, 1, 2]) expect(counts[3 + offset]).toBeGreaterThanOrEqual(2)
+  })
+
+  it('honours the named pair', () => {
+    const built = buildRandomHand(makeRng(3), { fixedPair: 31, triplets: 1 })
+    expect(built).not.toBeNull()
+    const counts = toCounts(built!.hand.concealed)
+    expect(counts[31]).toBeGreaterThanOrEqual(2)
+  })
+
+  it('constrains runs by their start, so chanta can still hold runs', () => {
+    // The bug this guards: a terminal-or-honor `tileFilter` rejects the 2 in
+    // the middle of 123 and so bans runs outright, turning chanta into
+    // honroutou every time.
+    let sawRun = false
+    for (let seed = 0; seed < 60 && !sawRun; seed++) {
+      const built = buildRandomHand(makeRng(seed), {
+        triplets: 2,
+        runStartFilter: (s) => s % 9 === 0 || s % 9 === 6,
+        tripletFilter: isTerminalOrHonor,
+        pairFilter: isTerminalOrHonor,
+      })
+      if (!built) continue
+      const counts = toCounts(built.hand.concealed)
+      // A run is present when three consecutive ranks each appear.
+      for (let f = 0; f < 25 && !sawRun; f++) {
+        if (f % 9 > 6) continue
+        if (counts[f] > 0 && counts[f + 1] > 0 && counts[f + 2] > 0) sawRun = true
+      }
+    }
+    expect(sawRun, 'a run-start filter never produced a run').toBe(true)
+  })
+
+  it('deals at most one red five per suit', () => {
+    for (let seed = 0; seed < 120; seed++) {
+      const built = buildRandomHand(makeRng(seed), { redFives: 3 })
+      if (!built) continue
+      const all = [...built.hand.concealed, ...built.hand.calls.flatMap((c) => c.tiles)]
+      const reds = all.filter(isRed)
+      // Only three red fives exist, one per numbered suit.
+      expect(reds.length).toBeLessThanOrEqual(3)
+      expect(new Set(reds.map(face)).size).toBe(reds.length)
+      for (const tile of reds) expect(rankOf(tile)).toBe(5)
+    }
+  })
+
+  it('keeps a called meld parseable when it holds a red five', () => {
+    // `call.tile` is a face index; the red bit leaking into it would make the
+    // meld parse as a face that does not exist.
+    for (let seed = 0; seed < 120; seed++) {
+      const built = buildRandomHand(makeRng(seed), { redFives: 1, openMelds: 2 })
+      if (!built) continue
+      for (const call of built.hand.calls) expect(call.tile).toBeLessThan(34)
+      expect(decompose(built.hand).length).toBeGreaterThan(0)
+    }
+  })
+})
+
+describe('buildThirteenOrphans', () => {
+  it('scores as a yakuman', () => {
+    for (let seed = 0; seed < 30; seed++) {
+      const built = buildThirteenOrphans(makeRng(seed))
+      const scored = scoreHandFull(built.hand, built.context, { dealer: built.dealer })
+      expect(scored.valid).toBe(true)
+      expect(scored.yakuman).toBeGreaterThan(0)
+      expect(scored.yaku.some((y) => y.id === 'kokushi')).toBe(true)
+    }
   })
 })
 

@@ -12,7 +12,7 @@ import { Hand } from '../components/Hand'
 import { scoreHandFull } from '../engine/explain'
 import { decompose, waitInterpretations } from '../engine/parse'
 import { discardOptions, shanten, waits } from '../engine/shanten'
-import { type Payment, paymentOf } from '../engine/score'
+import { neighbourPayments, paymentOf } from '../engine/score'
 import {
   ALL_FACES,
   ROUND_WINDS,
@@ -27,7 +27,8 @@ import {
 } from '../engine/tiles'
 import { YAKU_LIST, type YakuId } from '../engine/yaku'
 import { type Translator } from '../i18n'
-import { buildScoringHand } from './hands'
+import { buildScoringHand, buildThirteenOrphans } from './hands'
+import { RECIPES, YAKUMAN_RECIPES } from './recipes'
 import { type Rng, makeRng } from './random'
 import { type Choice, type Generator, type Question } from './types'
 
@@ -687,29 +688,124 @@ const yakuCompletion: Generator = {
 // ---------------------------------------------------------------- Han / Fu / Score
 
 /**
- * Shared setup for the three counting drills — they all pose a scored hand.
+ * How often a counting drill poses a hand from each value band.
  *
- * `kanChance` is the probability that the hand is dealt a kan. Zero for most
- * drills; the fu drill raises it, because a kan is the one meld whose fu does
- * not follow from the triplet rules — see `kanChance` at its call site.
+ * Left to the plain builder the answer was 1 or 2 han nearly three quarters of
+ * the time, and a hand worth a mangan or more turned up once in eight — so the
+ * upper half of the scoring table, which is most of what the han and score
+ * chapters teach, was barely ever practised. These weights spread the questions
+ * across the range instead: a learner still meets the cheap hands most often,
+ * because those are most of real mahjong, but a haneman is no longer a rarity
+ * and a yakuman is something they will actually see.
+ *
+ * The bands are the recipe groups plus two extremes: `plain` is the old
+ * unconstrained builder, kept because a hand that is *only* riichi and a dora
+ * is a real hand and a fair question, and `yakuman` is built from named tiles.
  */
-function scoredQuestion(seed: number, kanChance = 0) {
-  for (let attempt = 0; attempt < 60; attempt++) {
+const BANDS = [
+  { kind: 'plain', weight: 24 },
+  { kind: 'small', weight: 26 },
+  { kind: 'medium', weight: 30 },
+  { kind: 'large', weight: 17 },
+  { kind: 'yakuman', weight: 1 },
+] as const
+
+type BandKind = (typeof BANDS)[number]['kind']
+
+function pickBand(rng: Rng, allowYakuman: boolean): BandKind {
+  const pool = BANDS.filter((b) => allowYakuman || b.kind !== 'yakuman')
+  const total = pool.reduce((sum, b) => sum + b.weight, 0)
+  let roll = rng.next() * total
+  for (const band of pool) {
+    roll -= band.weight
+    if (roll <= 0) return band.kind
+  }
+  return pool[pool.length - 1].kind
+}
+
+interface ScoredOptions {
+  /**
+   * The chance the hand is dealt a kan. Zero for most drills; the fu drill
+   * raises it, because a kan is the one meld whose fu does not follow from the
+   * triplet rules — see the call site.
+   */
+  kanChance?: number
+  /**
+   * Whether a yakuman may be posed.
+   *
+   * Off for the fu drill, and only there: a yakuman is a flat payment that
+   * skips the fu table entirely, so "how many fu" has no answer worth asking.
+   * Han and score both handle one — the han drill asks for the multiple rather
+   * than a count, and a score drill that never showed 32000 would leave the
+   * biggest number on the table unpractised.
+   */
+  yakuman?: boolean
+}
+
+/**
+ * Shared setup for the counting drills — they all pose a scored hand.
+ *
+ * The band is chosen first and the hand is built to suit it, rather than a
+ * random hand being built and its value accepted afterwards.
+ *
+ * It is drawn once, from the seed, and every attempt then retries within it.
+ * Re-rolling per attempt was the obvious way and it quietly bent the weights:
+ * the bands do not fail equally often — a yakuman recipe names its tiles
+ * outright and practically always builds, where a junchan has to find four
+ * terminal melds that fit — so a band's share of the *questions* drifted toward
+ * how reliably it built rather than what it was weighted. Yakuman came out at
+ * triple its weight. Drawing once decouples the two.
+ *
+ * The last quarter of the attempts drop the recipe and build a plain hand, so a
+ * band that genuinely cannot be satisfied under this seed still yields a
+ * question rather than falling through to the tile-naming drill.
+ */
+function scoredQuestion(seed: number, options: ScoredOptions = {}) {
+  const { kanChance = 0, yakuman = true } = options
+  const ATTEMPTS = 80
+  const band = pickBand(makeRng(seed * 2654435761), yakuman)
+
+  for (let attempt = 0; attempt < ATTEMPTS; attempt++) {
     const inner = makeRng(seed + attempt * 15485863)
-    const menzen = inner.next() < 0.7
+    const giveUp = attempt >= ATTEMPTS * 0.75
+
+    // Thirteen orphans is not four melds and a pair, so it bypasses the builder.
+    if (band === 'yakuman' && !giveUp && inner.next() < 0.15) {
+      const built = buildThirteenOrphans(inner, randomContext(inner, true))
+      const scored = scoreHandFull(built.hand, built.context, { dealer: built.dealer })
+      if (scored.valid) return { built, scored }
+      continue
+    }
+
+    const recipe =
+      band === 'plain' || giveUp
+        ? null
+        : band === 'yakuman'
+          ? inner.pick(YAKUMAN_RECIPES)
+          : inner.pick(RECIPES[band])
+
+    // A recipe whose yaku does not survive being opened keeps the hand closed.
+    const menzen = recipe?.closedOnly ? true : inner.next() < 0.7
     const kans = inner.next() < kanChance ? 1 : 0
+    const recipeOptions = recipe?.build(inner) ?? {}
+
     const built = buildScoringHand(inner, {
-      // A kan occupies the first meld slot, and `openMelds` exposes that same
-      // slot — so an open hand's single call *is* the kan when it has one,
-      // making it a minkan, and a closed hand's kan is declared as an ankan.
-      openMelds: menzen ? 0 : 1,
+      ...recipeOptions,
+      // A kan occupies a meld slot, and `openMelds` exposes the first slots —
+      // so an open hand's single call *is* the kan when it has one, making it a
+      // minkan, and a closed hand's kan is declared as an ankan.
+      openMelds: menzen ? 0 : (recipeOptions.openMelds ?? 1),
       kans,
+      // Red fives are the everyday dora a player counts without an indicator,
+      // and the builder never dealt one before.
+      redFives: inner.next() < 0.25 ? 1 : 0,
       context: randomContext(inner, menzen),
     })
     if (!built) continue
     const scored = scoreHandFull(built.hand, built.context, { dealer: built.dealer })
-    // Yakuman skip the han/fu tables entirely, so they make poor counting drills.
-    if (scored.valid && scored.yakuman === 0) return { built, scored }
+    if (!scored.valid) continue
+    if (!yakuman && scored.yakuman > 0) continue
+    return { built, scored }
   }
   return null
 }
@@ -723,6 +819,47 @@ const hanCount: Generator = {
     if (!made) return tileRecognition.generate(seed, t)
     const { built, scored } = made
 
+    const rng = makeRng(seed)
+
+    /**
+     * A yakuman is counted, not added up.
+     *
+     * Its han field is zero — the tier replaces han and fu outright — so asking
+     * "how many han" of one would key the answer to a number the hand does not
+     * have. The question becomes how many yakuman it is worth instead, which is
+     * the reading the hand actually calls for, and the options are the
+     * neighbouring multiples plus the 13 han a player who tried to count it up
+     * would arrive at.
+     */
+    if (scored.yakuman > 0) {
+      const answer = `yakuman:${scored.yakuman}`
+      const near = [
+        ...[1, 2, 3].filter((n) => n !== scored.yakuman).map((n) => `yakuman:${n}`),
+        // The count a player who tried to add the hand up would arrive at. It
+        // is the mistake the question is really about: a yakuman is recognized,
+        // not totalled, and 13 han is a counted yakuman rather than this.
+        'han:13',
+      ]
+      const renderYakuman = (value: string) => {
+        const n = Number(value.slice(value.indexOf(':') + 1))
+        if (value.startsWith('han:')) return t.han(n)
+        return n > 1 ? t.t('unit.yakumanMultiple', { n }) : t.t('unit.yakuman')
+      }
+      return {
+        drillId: 'han.count',
+        kind: 'choice',
+        prompt: t.t('drill.han.count.promptYakuman'),
+        hint: t.t('drill.han.count.hintYakuman'),
+        tiles: built.hand.concealed,
+        calls: built.hand.calls,
+        winTile: built.hand.winTile,
+        context: handContext(built, t),
+        choices: choices(rng, answer, near, (v) => v, renderYakuman),
+        explanation: <Breakdown scored={scored} dealer={built.dealer} />,
+        seed,
+      }
+    }
+
     /**
      * Distractors are the neighbouring han counts, which is exactly where a
      * miscount lands: forget the dora and you are one low, double-count a yaku
@@ -734,7 +871,6 @@ const hanCount: Generator = {
      * -1 to offer — and a question that fell back to three options was visibly
      * the easy one before it was read.
      */
-    const rng = makeRng(seed)
     const near = [-2, -1, 1, 2, 3, 4]
       .map((offset) => scored.han + offset)
       .filter((n) => n >= 1 && n !== scored.han)
@@ -771,7 +907,7 @@ const fuCount: Generator = {
      * kan is declared from the hand (ankan), an open hand's is called off a
      * discard (minkan), and the two differ by a factor of two in fu.
      */
-    const made = scoredQuestion(seed, 0.33)
+    const made = scoredQuestion(seed, { kanChance: 0.33, yakuman: false })
     if (!made) return tileRecognition.generate(seed, t)
     const { built, scored } = made
 
@@ -839,29 +975,20 @@ const scorePick: Generator = {
     const answer = paymentOf(scored.score, built.context.tsumo, built.dealer)
 
     /**
-     * Distractors are the neighbouring rows of the payment table, not arbitrary
-     * numbers. Doubling and halving are where a real miscount lands — one han
-     * out in either direction — and 1.5x catches the dealer/non-dealer mix-up,
-     * which is the other classic error. Every part of a payment is scaled
-     * together, so a wrong option is a wrong row rather than an inconsistent
-     * pair of figures, and each is rounded to the 100 every payment uses.
+     * Distractors are the neighbouring rows of the real payment table.
+     *
+     * They used to be the answer scaled by a factor, which produced figures no
+     * hand has ever paid: a quarter of 1300 rounds to "300/400", and the small
+     * tsumo rows bottomed out at "100/100". A player did not have to read the
+     * hand to rule those out — they are not on the table at all — so the
+     * question graded recognition of nonsense rather than scoring.
+     *
+     * The eight nearest rows are offered to `choices`, which picks three. Near
+     * rather than random: a han miscounted or a fu step missed lands a player
+     * one or two rows off, so these are exactly the answers a hand read almost
+     * right produces, and telling them apart means having read it exactly.
      */
-    const round100 = (n: number) => Math.max(100, Math.round(n / 100) * 100)
-    const scale = (payment: Payment, factor: number): Payment => {
-      switch (payment.kind) {
-        case 'ron':
-          return { kind: 'ron', amount: round100(payment.amount * factor) }
-        case 'tsumo-dealer':
-          return { kind: 'tsumo-dealer', each: round100(payment.each * factor) }
-        case 'tsumo-nondealer':
-          return {
-            kind: 'tsumo-nondealer',
-            each: round100(payment.each * factor),
-            fromDealer: round100(payment.fromDealer * factor),
-          }
-      }
-    }
-    const near = [2, 0.5, 1.5, 4, 0.25].map((factor) => scale(answer, factor))
+    const near = neighbourPayments(answer, built.dealer, built.context.tsumo).slice(0, 8)
 
     return {
       drillId: 'score.pick',

@@ -358,6 +358,9 @@ export const messages = {
   'drill.han.count.prompt': 'How many han is this hand worth?',
   'drill.han.count.hint':
     'Include dora. Remember that opening the hand costs some yaku a han.',
+  'drill.han.count.promptYakuman': 'This hand is a yakuman. How many is it worth?',
+  'drill.han.count.hintYakuman':
+    'A yakuman replaces han and fu entirely, so there is nothing to add up — read which pattern it is, and whether it counts once or twice.',
 
   'drill.fu.count.title': 'Count the fu',
   'drill.fu.count.desc': 'Add up the minor points, then round.',

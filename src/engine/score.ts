@@ -153,3 +153,92 @@ export function paymentOf(result: ScoreResult, tsumo: boolean, dealer: boolean):
 /** The han/fu grid the score lesson renders. */
 export const FU_STEPS = [20, 25, 30, 40, 50, 60, 70, 80, 90, 100, 110] as const
 export const HAN_STEPS = [1, 2, 3, 4] as const
+
+/** What the winner collects in total, used to rank payments against each other. */
+export function paymentValue(payment: Payment): number {
+  switch (payment.kind) {
+    case 'ron':
+      return payment.amount
+    case 'tsumo-dealer':
+      return payment.each * 3
+    case 'tsumo-nondealer':
+      return payment.each * 2 + payment.fromDealer
+  }
+}
+
+/** Identity for a payment, so two rows that pay the same are one row. */
+export function paymentKey(payment: Payment): string {
+  switch (payment.kind) {
+    case 'ron':
+      return `r${payment.amount}`
+    case 'tsumo-dealer':
+      return `d${payment.each}`
+    case 'tsumo-nondealer':
+      return `n${payment.each}/${payment.fromDealer}`
+  }
+}
+
+/**
+ * Whether a (han, fu) pair is a cell that exists on the scoring table.
+ *
+ * The low-fu corner is mostly empty. 20 fu is the pinfu shape, which earns no
+ * fu at all beyond the base — and pinfu is closed, worth a han itself, and adds
+ * a second on a self-draw, so the cell never appears below 2 han. 25 fu belongs
+ * to chiitoitsu, which is 2 han before anything else is counted. Above 4 han
+ * the fu stops mattering: every cell in the row is a mangan or better.
+ */
+function cellExists(han: number, fu: number): boolean {
+  if (fu === 20 || fu === 25) return han >= 2
+  return han >= 1
+}
+
+/**
+ * Every payment that actually appears on the scoring table, ascending.
+ *
+ * This is the pool the scoring drill draws its wrong answers from. Scaling the
+ * right answer by a factor was the obvious way to do it and the wrong one: a
+ * quarter of 1300 rounds to "300/400", and a quarter of a small tsumo lands on
+ * "100/100" — figures no hand pays and no player has ever said out loud, so an
+ * option carrying one is eliminated without reading the hand. Every row here is
+ * a cell a real hand can land on, which is what makes the wrong ones tempting.
+ */
+export function paymentTable(dealer: boolean, tsumo: boolean): Payment[] {
+  const rows: Payment[] = []
+  const seen = new Set<string>()
+
+  const add = (input: Omit<ScoreInput, 'dealer' | 'tsumo'>) => {
+    const payment = paymentOf(scoreHand({ ...input, dealer, tsumo }), tsumo, dealer)
+    const key = paymentKey(payment)
+    if (seen.has(key)) return
+    seen.add(key)
+    rows.push(payment)
+  }
+
+  // Up to kazoe. Above 4 han the fu is irrelevant, but the loop is left to run
+  // over it anyway — those rows collapse onto one another and `seen` drops them.
+  for (let han = 1; han <= 13; han++) {
+    for (const fu of FU_STEPS) {
+      if (!cellExists(han, fu)) continue
+      add({ han, fu })
+    }
+  }
+  // A true yakuman, and the double the four big winds pays.
+  for (const yakuman of [1, 2]) add({ han: 0, fu: 0, yakuman })
+
+  return rows.sort((a, b) => paymentValue(a) - paymentValue(b))
+}
+
+/**
+ * The table rows on either side of `payment`, nearest first.
+ *
+ * Neighbours rather than random rows: a miscount of a han or a fu step lands a
+ * player one or two rows away, so these are the answers a hand that was read
+ * *almost* right produces.
+ */
+export function neighbourPayments(payment: Payment, dealer: boolean, tsumo: boolean): Payment[] {
+  const target = paymentValue(payment)
+  const key = paymentKey(payment)
+  return paymentTable(dealer, tsumo)
+    .filter((row) => paymentKey(row) !== key)
+    .sort((a, b) => Math.abs(paymentValue(a) - target) - Math.abs(paymentValue(b) - target))
+}

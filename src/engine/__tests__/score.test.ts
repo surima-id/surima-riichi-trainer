@@ -1,7 +1,16 @@
 import { describe, expect, it } from 'vitest'
 import { scoreHandFull } from '../explain'
 import { type Hand } from '../parse'
-import { basePointsFor, scoreHand } from '../score'
+import {
+  FU_STEPS,
+  basePointsFor,
+  neighbourPayments,
+  paymentKey,
+  paymentOf,
+  paymentTable,
+  paymentValue,
+  scoreHand,
+} from '../score'
 import { EAST, SOUTH, parseTiles } from '../tiles'
 import { type WinContext, defaultContext } from '../yaku'
 
@@ -239,5 +248,105 @@ describe('yaku detection through scoring', () => {
   it('refuses tiles that are not a hand', () => {
     const r = scoreHandFull(hand('123m456p789s135z11m', '1m'), ctx())
     expect(r.valid).toBe(false)
+  })
+})
+
+/**
+ * The pool the scoring drill draws its wrong answers from.
+ *
+ * Distractors used to be the right answer scaled by a factor and rounded, which
+ * produced figures no hand has ever paid — "200/300", "100/100", "300/400" —
+ * and a player could eliminate them without reading the hand at all.
+ */
+describe('paymentTable', () => {
+  const cases = [
+    [true, true],
+    [true, false],
+    [false, true],
+    [false, false],
+  ] as const
+
+  it.each(cases)('dealer=%s tsumo=%s: every row is a real hand', (dealer, tsumo) => {
+    const rows = paymentTable(dealer, tsumo)
+    expect(rows.length).toBeGreaterThan(20)
+
+    for (const row of rows) {
+      // Every figure a player actually hands over is a multiple of 100 and is
+      // at least 100 — the rounding step every ruleset applies.
+      const parts =
+        row.kind === 'ron'
+          ? [row.amount]
+          : row.kind === 'tsumo-dealer'
+            ? [row.each]
+            : [row.each, row.fromDealer]
+      for (const part of parts) {
+        expect(part % 100).toBe(0)
+        expect(part).toBeGreaterThanOrEqual(100)
+      }
+      // A non-dealer self-draw always takes more from the dealer than from the
+      // others; "100/100" was the shape of the old bug.
+      if (row.kind === 'tsumo-nondealer') expect(row.fromDealer).toBeGreaterThan(row.each)
+    }
+  })
+
+  it.each(cases)('dealer=%s tsumo=%s: rows are distinct and ascending', (dealer, tsumo) => {
+    const rows = paymentTable(dealer, tsumo)
+    const keys = rows.map(paymentKey)
+    expect(new Set(keys).size, 'duplicate rows').toBe(keys.length)
+
+    const values = rows.map(paymentValue)
+    expect([...values].sort((a, b) => a - b)).toEqual(values)
+  })
+
+  it('reaches from a cheap hand up to a double yakuman', () => {
+    const rows = paymentTable(false, false).map(paymentValue)
+    expect(Math.min(...rows)).toBe(1000)
+    expect(Math.max(...rows)).toBe(64000)
+  })
+
+  it('contains every hand the scorer can actually produce', () => {
+    // The pool is built from (han, fu) cells; this walks the same space through
+    // `scoreHand` to confirm nothing the engine emits is missing from it.
+    for (const dealer of [true, false]) {
+      for (const tsumo of [true, false]) {
+        const rows = new Set(paymentTable(dealer, tsumo).map(paymentKey))
+        for (let han = 1; han <= 13; han++) {
+          for (const fu of FU_STEPS) {
+            if ((fu === 20 || fu === 25) && han < 2) continue
+            const payment = paymentOf(scoreHand({ han, fu, dealer, tsumo }), tsumo, dealer)
+            expect(rows.has(paymentKey(payment)), `${han}han ${fu}fu missing`).toBe(true)
+          }
+        }
+      }
+    }
+  })
+})
+
+describe('neighbourPayments', () => {
+  it('returns real rows, never the answer itself', () => {
+    for (const dealer of [true, false]) {
+      for (const tsumo of [true, false]) {
+        const table = paymentTable(dealer, tsumo)
+        const real = new Set(table.map(paymentKey))
+        for (const payment of table) {
+          const near = neighbourPayments(payment, dealer, tsumo)
+          expect(near.length).toBeGreaterThan(3)
+          for (const row of near) {
+            expect(real.has(paymentKey(row))).toBe(true)
+            expect(paymentKey(row)).not.toBe(paymentKey(payment))
+          }
+        }
+      }
+    }
+  })
+
+  it('puts the closest rows first, which is where a miscount lands', () => {
+    const table = paymentTable(false, false)
+    for (const payment of table) {
+      const distances = neighbourPayments(payment, false, false).map((row) =>
+        Math.abs(paymentValue(row) - paymentValue(payment)),
+      )
+      expect([...distances].sort((a, b) => a - b)).toEqual(distances)
+    }
   })
 })
