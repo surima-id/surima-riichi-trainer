@@ -75,16 +75,57 @@ function RiichiStick() {
   )
 }
 
+/** The strip's field label: small, set back, and the same in every slot. */
+function FieldLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="text-xs font-semibold uppercase tracking-wide text-black/50 dark:text-white/50">
+      {children}
+    </span>
+  )
+}
+
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <span className="flex items-center gap-2">
       {/* The gold tick is the separator between fields; it reads as one band
           rather than as a row of separate chips. */}
       <span aria-hidden="true" className="h-3.5 w-0.5 shrink-0 rounded-full bg-gold-400" />
-      <span className="text-xs font-semibold uppercase tracking-wide text-black/50 dark:text-white/50">
-        {label}
-      </span>
+      <FieldLabel>{label}</FieldLabel>
       {children}
+    </span>
+  )
+}
+
+/**
+ * The dead wall: dora indicators, and the ura row a riichi turns over.
+ *
+ * Each row is labelled on its own line rather than the pair sharing one
+ * "Dora / Ura" heading. That heading named two things at once and pointed at
+ * neither — a reader had to infer that the halves mapped top-to-bottom onto the
+ * rows beside it, which is a small puzzle to solve every time the strip is read,
+ * and one that gets harder the moment a hand has only the dora row.
+ *
+ * A two-column grid, so the tiles of both rows start at the same x no matter
+ * which label is the wider word. `items-center` on each row is what puts the
+ * label against its own tiles rather than against the block as a whole.
+ */
+function DeadWall({ dora, ura }: { dora: TileValue[]; ura: TileValue[] }) {
+  const t = useT()
+  return (
+    <span className="flex items-center gap-2">
+      <span aria-hidden="true" className="h-3.5 w-0.5 shrink-0 rounded-full bg-gold-400" />
+      <span className="grid grid-cols-[auto_auto] items-center gap-x-2 gap-y-0.5 rounded-md bg-sky-500/10 p-1">
+        <FieldLabel>{t.t('context.dora')}</FieldLabel>
+        <IndicatorRow tiles={dora} />
+        {/* Dora above, ura below — the dead wall's own stacking, so the row a
+            player reads second is the row a riichi earned them. */}
+        {ura.length > 0 && (
+          <>
+            <FieldLabel>{t.t('context.ura')}</FieldLabel>
+            <IndicatorRow tiles={ura} />
+          </>
+        )}
+      </span>
     </span>
   )
 }
@@ -118,14 +159,7 @@ export function HandContext({
   return (
     <div className="mb-1 flex flex-wrap items-center gap-x-4 gap-y-2 rounded-t-xl border border-black/5 bg-black/[0.04] px-3 py-2 dark:border-white/10 dark:bg-white/[0.06]">
       {doraIndicators.length > 0 && (
-        <Field label={t.t(uraIndicators.length > 0 ? 'context.doraWithUra' : 'context.dora')}>
-          {/* Dora above, ura below — the dead wall's own stacking, so the row a
-              player reads second is the row a riichi earned them. */}
-          <span className="flex flex-col gap-0.5 rounded-md bg-sky-500/10 p-1">
-            <IndicatorRow tiles={doraIndicators} />
-            {uraIndicators.length > 0 && <IndicatorRow tiles={uraIndicators} />}
-          </span>
-        </Field>
+        <DeadWall dora={doraIndicators} ura={uraIndicators} />
       )}
 
       {seatWind !== undefined && (
