@@ -8,8 +8,9 @@ import { HanLesson } from './routes/Han'
 import { FuLesson } from './routes/Fu'
 import { ScoreLesson } from './routes/Score'
 import { EfficiencyLesson } from './routes/Efficiency'
+import { GlossaryPage } from './routes/Glossary'
 import { LANGS, LANG_LABELS, useI18n } from './i18n'
-import { CHAPTERS, CHAPTER_IDS } from './content/chapters'
+import { CHAPTERS, CHAPTER_IDS, OPTIONAL_CHAPTERS } from './content/chapters'
 import { completionRatio, totalXp } from './store/progress'
 import { useProgress } from './store/useProgress'
 import { Meter } from './components/ui'
@@ -102,6 +103,30 @@ function Nav() {
             {t.t(item.navKey)}
           </NavLink>
         ))}
+        {/* The optional modules follow the ladder, behind a divider: they are
+            reachable from the nav, but putting them in the same run would imply
+            they are step eight of a seven-step course. */}
+        {OPTIONAL_CHAPTERS.length > 0 && (
+          <span
+            aria-hidden="true"
+            className="mx-1.5 hidden h-4 w-px shrink-0 bg-black/15 sm:block dark:bg-white/20"
+          />
+        )}
+        {OPTIONAL_CHAPTERS.map((item) => (
+          <NavLink
+            key={item.path}
+            to={item.path}
+            className={({ isActive }) =>
+              `relative rounded-lg px-3 py-1.5 text-sm transition duration-200 ${
+                isActive
+                  ? 'bg-black/[0.07] font-semibold dark:bg-white/15'
+                  : 'text-black/60 hover:bg-black/5 hover:text-black dark:text-white/60 dark:hover:bg-white/10 dark:hover:text-white'
+              }`
+            }
+          >
+            {t.t(item.navKey)}
+          </NavLink>
+        ))}
         <div className="ml-auto flex items-center gap-3">
           <MasteryChip />
           <LanguageToggle />
@@ -136,6 +161,7 @@ export default function App() {
           <Route path="/fu" element={<FuLesson />} />
           <Route path="/score" element={<ScoreLesson />} />
           <Route path="/efficiency" element={<EfficiencyLesson />} />
+          <Route path="/glossary" element={<GlossaryPage />} />
           <Route path="*" element={<Home />} />
         </Routes>
       </div>

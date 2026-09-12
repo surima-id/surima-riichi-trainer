@@ -12,7 +12,7 @@ import { Badge, Button, Card, Meter, Pips, SectionTitle, stagger } from '../comp
 import { ALL_GENERATORS } from '../drills/generators'
 import { parseTiles } from '../engine/tiles'
 import { useT, type MessageKey } from '../i18n'
-import { CHAPTERS, CHAPTER_IDS } from '../content/chapters'
+import { CHAPTERS, CHAPTER_IDS, OPTIONAL_CHAPTERS } from '../content/chapters'
 import {
   CHAPTER_CAP,
   accuracy,
@@ -182,6 +182,30 @@ export function Home() {
         ))}
 
       </div>
+
+      {/* Optional modules, in their own section below the ladder. A reference
+          page in the numbered grid would either need a step number it has not
+          earned or leave a visible gap in the sequence. */}
+      <section className="anim-fade-up" style={stagger(CHAPTERS.length + 2, 55)}>
+        <SectionTitle>{t.t('home.optional')}</SectionTitle>
+        <div className="grid gap-3.5 sm:grid-cols-2">
+          {OPTIONAL_CHAPTERS.map((module) => (
+            <Link key={module.id} to={module.path} className="group">
+              <Card className="sheen sheen-hover relative h-full overflow-hidden group-hover:-translate-y-1 group-hover:border-felt-700/30 group-hover:shadow-lg dark:group-hover:border-white/25">
+                <div className="mb-1.5 flex items-center gap-2.5">
+                  <h2 className="text-lg font-semibold tracking-tight">
+                    {t.t(`module.${module.id}.title` as MessageKey)}
+                  </h2>
+                  {read.has(module.id) && <Badge tone="good">{t.t('home.read')}</Badge>}
+                </div>
+                <p className="text-sm text-black/60 dark:text-white/60">
+                  {t.t(`module.${module.id}.blurb` as MessageKey)}
+                </p>
+              </Card>
+            </Link>
+          ))}
+        </div>
+      </section>
 
       {Object.keys(progress.drills).length > 0 && (
         <section className="anim-fade-up" style={stagger(CHAPTERS.length + 3, 55)}>

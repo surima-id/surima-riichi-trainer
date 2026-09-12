@@ -30,5 +30,18 @@ export const CHAPTERS: readonly Chapter[] = [
   { id: 'efficiency', path: '/efficiency', navKey: 'nav.efficiency' },
 ]
 
-/** Chapter ids alone, for the mastery denominators. */
+/**
+ * Modules that sit outside the course ladder.
+ *
+ * Kept separate from `CHAPTERS` rather than flagged inside it, because the
+ * distinction is load-bearing: `CHAPTER_IDS` below is the denominator for every
+ * mastery figure on the site, and a reference page with no quiz would otherwise
+ * make 100% unreachable. Anything here is reachable from the nav and the course
+ * map but earns no points and is never counted.
+ */
+export const OPTIONAL_CHAPTERS: readonly Chapter[] = [
+  { id: 'glossary', path: '/glossary', navKey: 'nav.glossary' },
+]
+
+/** Chapter ids alone, for the mastery denominators. Optional modules are excluded. */
 export const CHAPTER_IDS: readonly string[] = CHAPTERS.map((c) => c.id)
