@@ -213,21 +213,36 @@ export function LineItem({
   label,
   value,
   detail,
+  figure,
   style,
 }: {
   label: ReactNode
   value: ReactNode
   detail?: ReactNode
+  /**
+   * An illustration for the row, drawn to the left of the label.
+   *
+   * Its own slot rather than part of `label`, because the two need different
+   * alignment: a row of text aligns on its baseline, and a picture has none to
+   * share — putting one inside the label drags the row's baseline down to the
+   * bottom of the image and strands the value below the words.
+   */
+  figure?: ReactNode
   style?: CSSProperties
 }) {
   return (
     <div
-      className="anim-fade-up flex items-baseline justify-between gap-4 border-b border-dashed border-black/10 py-2 last:border-0 dark:border-white/10"
+      className={`anim-fade-up flex justify-between gap-4 border-b border-dashed border-black/10 py-2 last:border-0 dark:border-white/10 ${
+        figure ? 'items-center' : 'items-baseline'
+      }`}
       style={style}
     >
-      <div>
-        <div className="text-sm">{label}</div>
-        {detail && <div className="text-xs text-black/50 dark:text-white/50">{detail}</div>}
+      <div className="flex min-w-0 items-center gap-3">
+        {figure}
+        <div className="min-w-0">
+          <div className="text-sm">{label}</div>
+          {detail && <div className="text-xs text-black/50 dark:text-white/50">{detail}</div>}
+        </div>
       </div>
       <div className="shrink-0 font-mono text-sm font-medium tabular-nums">{value}</div>
     </div>

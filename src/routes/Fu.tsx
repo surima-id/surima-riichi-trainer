@@ -1,5 +1,6 @@
 import { Hand } from '../components/Hand'
 import { Example, Lesson } from '../components/Lesson'
+import { Tile } from '../components/Tile'
 import { Card, LessonHeading, LineItem } from '../components/ui'
 import { GENERATORS } from '../drills/generators'
 import { type Call } from '../engine/parse'
@@ -12,17 +13,65 @@ import { type MessageKey } from '../i18n'
  *
  * Rows are keyed by the same catalog entries the scorer's own breakdown uses,
  * so what a learner memorizes here is word-for-word what they see in a result.
+ *
+ * Each row carries a sample meld as well as its label. The eight rows are four
+ * distinctions crossed two ways — triplet or kan, concealed or open, simple or
+ * terminal — and a reader working from the labels alone has to hold all three
+ * axes in their head while scanning. Drawn melds make two of the three visible:
+ * a sideways tile is a claimed one, four tiles is a kan, and the tile faces say
+ * whether it is a simple or a terminal.
  */
-const TRIPLET_ROWS: { key: MessageKey; fu: number }[] = [
-  { key: 'fu.meld.triplet.open.simple', fu: 2 },
-  { key: 'fu.meld.triplet.concealed.simple', fu: 4 },
-  { key: 'fu.meld.triplet.open.terminal-honor', fu: 4 },
-  { key: 'fu.meld.triplet.concealed.terminal-honor', fu: 8 },
-  { key: 'fu.meld.kan.open.simple', fu: 8 },
-  { key: 'fu.meld.kan.concealed.simple', fu: 16 },
-  { key: 'fu.meld.kan.open.terminal-honor', fu: 16 },
-  { key: 'fu.meld.kan.concealed.terminal-honor', fu: 32 },
+const TRIPLET_ROWS: { key: MessageKey; fu: number; tiles: string; concealed: boolean }[] = [
+  { key: 'fu.meld.triplet.open.simple', fu: 2, tiles: '555p', concealed: false },
+  { key: 'fu.meld.triplet.concealed.simple', fu: 4, tiles: '555p', concealed: true },
+  { key: 'fu.meld.triplet.open.terminal-honor', fu: 4, tiles: '999s', concealed: false },
+  { key: 'fu.meld.triplet.concealed.terminal-honor', fu: 8, tiles: '999s', concealed: true },
+  { key: 'fu.meld.kan.open.simple', fu: 8, tiles: '5555p', concealed: false },
+  { key: 'fu.meld.kan.concealed.simple', fu: 16, tiles: '5555p', concealed: true },
+  { key: 'fu.meld.kan.open.terminal-honor', fu: 16, tiles: '9999s', concealed: false },
+  { key: 'fu.meld.kan.concealed.terminal-honor', fu: 32, tiles: '9999s', concealed: true },
 ]
+
+/**
+ * One meld from the table, drawn.
+ *
+ * Deliberately not `Hand`: this is a meld on its own rather than a hand, and
+ * `Hand` would want a concealed run and a winning tile to sit it beside.
+ *
+ * The two conventions it borrows from `Hand` are the ones a player already reads
+ * at a table — a claimed tile is laid sideways, and a concealed kan hides its
+ * outer two tiles — which is what makes the concealed/open distinction legible
+ * without a label.
+ */
+function MeldFigure({ tiles, concealed }: { tiles: string; concealed: boolean }) {
+  const parsed = parseTiles(tiles)
+  const isKan = parsed.length === 4
+
+  return (
+    <span className="flex items-end gap-px">
+      {parsed.map((tile, i) => {
+        const rotated = !concealed && i === 0
+        return (
+          // A rotated tile is turned with a CSS transform, which does not change
+          // the width it reserves — so a sideways tile lays itself over its
+          // neighbour unless its slot is widened to the height it now occupies.
+          // A tile is 3:4, so a quarter turn needs four thirds of its width.
+          <span key={i} className={rotated ? 'inline-flex w-[133%] items-end' : 'inline-flex'}>
+            <Tile
+              tile={tile}
+              size="xs"
+              // A concealed kan shows its two middle tiles only; an open meld
+              // lays the claimed tile sideways. A concealed triplet is three
+              // upright tiles with nothing to mark, which is itself the point.
+              faceDown={concealed && isKan && (i === 0 || i === 3)}
+              rotated={rotated}
+            />
+          </span>
+        )
+      })}
+    </span>
+  )
+}
 
 /**
  * The same hand twice, differing only in how its kan was obtained.
@@ -97,7 +146,23 @@ export function FuLesson() {
       <div className="not-prose">
         <Card>
           {TRIPLET_ROWS.map((row) => (
-            <LineItem key={row.key} label={t.t(row.key)} value={t.fu(row.fu)} />
+            <LineItem
+              key={row.key}
+              // The figure leads, so the eight rows read as a column of shapes a
+              // reader can compare down the page rather than as eight similar
+              // sentences. It is decorative — the label says the same thing in
+              // words — so it is hidden from screen readers.
+              figure={
+                // No fixed width: a kan is a tile wider than a triplet and an
+                // open meld wider again, so a single column width either clips
+                // the widest row or leaves a gap beside the narrowest.
+                <span aria-hidden="true" className="shrink-0">
+                  <MeldFigure tiles={row.tiles} concealed={row.concealed} />
+                </span>
+              }
+              label={t.t(row.key)}
+              value={t.fu(row.fu)}
+            />
           ))}
         </Card>
       </div>

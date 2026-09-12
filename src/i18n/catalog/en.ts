@@ -63,11 +63,11 @@ export const messages = {
   'wait.kanchan.short': 'Closed wait',
   'wait.shanpon.short': 'Dual-triplet wait',
   'wait.tanki.short': 'Pair wait',
-  'wait.ryanmen.long': 'Two-sided wait (ryanmen)',
-  'wait.penchan.long': 'Edge wait (penchan)',
-  'wait.kanchan.long': 'Closed wait (kanchan)',
-  'wait.shanpon.long': 'Dual-triplet wait (shanpon)',
-  'wait.tanki.long': 'Pair wait (tanki)',
+  'wait.ryanmen.long': 'Ryanmen (two-sided wait)',
+  'wait.penchan.long': 'Penchan (edge wait)',
+  'wait.kanchan.long': 'Kanchan (closed wait)',
+  'wait.shanpon.long': 'Shanpon (dual-triplet wait)',
+  'wait.tanki.long': 'Tanki (pair wait)',
 
   // ---- Fu breakdown ----
   'fu.base': 'Base',
@@ -504,19 +504,19 @@ export const messages = {
   'lesson.shapes.waitsWait': 'wait',
   'lesson.shapes.waits3':
     '. Which shape you are waiting on affects both how likely you are to win and how much fu you score.',
-  'lesson.shapes.exRyanmen': 'Two-sided (ryanmen) — 34m waits on 2m and 5m. The best wait: eight tiles.',
-  'lesson.shapes.exKanchan': 'Closed (kanchan) — 13m waits only on 2m. Four tiles.',
-  'lesson.shapes.exPenchan': 'Edge (penchan) — 12m waits only on 3m, because there is no 0. Four tiles.',
-  'lesson.shapes.exShanpon': 'Dual triplet (shanpon) — two pairs, waiting to turn either into a triplet. Four tiles.',
-  'lesson.shapes.exTanki': 'Pair (tanki) — a lone tile waiting to become the pair. Three tiles.',
+  'lesson.shapes.exRyanmen': 'Ryanmen (two-sided) — 34m waits on 2m and 5m. The best wait: eight tiles.',
+  'lesson.shapes.exKanchan': 'Kanchan (closed) — 13m waits only on 2m. Four tiles.',
+  'lesson.shapes.exPenchan': 'Penchan (edge) — 12m waits only on 3m, because there is no 0. Four tiles.',
+  'lesson.shapes.exShanpon': 'Shanpon (dual triplet) — two pairs, waiting to turn either into a triplet. Four tiles.',
+  'lesson.shapes.exTanki': 'Tanki (pair) — a lone tile waiting to become the pair. Three tiles.',
   'lesson.shapes.h2Special': 'Two hands that break the rules',
-  'lesson.shapes.specialA': 'Seven Pairs',
-  'lesson.shapes.specialB': '(chiitoitsu) is seven different pairs rather than four sets and a pair.',
-  'lesson.shapes.specialC': 'Thirteen Orphans',
+  'lesson.shapes.specialA': 'Chiitoitsu (Seven Pairs)',
+  'lesson.shapes.specialB': 'is seven different pairs rather than four sets and a pair.',
+  'lesson.shapes.specialC': 'Kokushi Musou (Thirteen Orphans)',
   'lesson.shapes.specialD':
-    '(kokushi musou) is one of each terminal and honor, plus a second copy of any one of them. Both must be entirely closed.',
-  'lesson.shapes.exKokushi': 'Thirteen Orphans',
-  'lesson.shapes.exChiitoitsu': 'Seven Pairs — seven different pairs, never two of the same',
+    'is one of each terminal and honor, plus a second copy of any one of them. Both must be entirely closed.',
+  'lesson.shapes.exKokushi': 'Kokushi Musou (Thirteen Orphans)',
+  'lesson.shapes.exChiitoitsu': 'Chiitoitsu (Seven Pairs) — seven different pairs, never two of the same',
 
   // ---- Lesson: Yaku ----
   'lesson.yaku.subtitle': 'A hand without a yaku cannot win, no matter how it looks.',
@@ -570,16 +570,16 @@ export const messages = {
   'lesson.fu.triplets':
     'Triplets are where most fu come from. The value doubles for being concealed, doubles again for terminals or honors, and quadruples for a kan.',
   'lesson.fu.ronRule1': 'One rule catches everybody: a triplet completed by',
-  'lesson.fu.ronRuleBold': 'claiming a discard',
+  'lesson.fu.ronRuleBold': 'Ron (winning on a discard)',
   'lesson.fu.ronRule2':
     'counts as open even though it sits in your closed hand, because the last tile came from someone else. Self-draw the same tile and it stays concealed — often a difference of 10 fu.',
   'lesson.fu.h2Special': 'Three hands that ignore all of it',
-  'lesson.fu.specialA': 'Seven pairs',
+  'lesson.fu.specialA': 'Chiitoitsu (Seven Pairs)',
   'lesson.fu.specialB': 'is always exactly 25 fu, and never rounds.',
-  'lesson.fu.specialC': 'Pinfu self-draw',
+  'lesson.fu.specialC': 'Pinfu Tsumo (Pinfu self-draw)',
   'lesson.fu.specialD':
     'is fixed at 20 — the +2 self-draw bonus does not apply, because earning no extra fu is the definition of pinfu.',
-  'lesson.fu.specialE': 'Pinfu on a discard',
+  'lesson.fu.specialE': 'Pinfu Ron (Pinfu won on a discard)',
   'lesson.fu.specialF': 'is 30: base 20 plus the closed-hand bonus.',
   'lesson.fu.exPinfu': 'Pinfu: all runs, a worthless pair, and a two-sided wait',
   'lesson.fu.h2Kan': 'A kan, closed and open',
@@ -590,7 +590,7 @@ export const messages = {
     'Declared from your own hand, so it is concealed terminals: 8 fu doubled twice over, or 32. The hand also stays closed around it, which is why the closed-hand bonus still applies and riichi remains available.',
   'lesson.fu.exMinkan': 'Open kan (minkan) — 16 fu for the meld',
   'lesson.fu.exMinkanNote':
-    'The same four tiles, but the last came from a discard. That halves the meld to 16 fu and opens the hand, costing the closed-hand bonus as well. Note that these tiles have no yaku once the hand is open, so as it stands it cannot win at all — the meld fu is what to read here, not a hand total.',
+    'The same four tiles, but the last came from a discard. That halves the meld to 16 fu and opens the hand, costing the closed-hand bonus as well. This hand has no yaku once it is open, so as it stands it cannot win at all — the meld fu is what to read here, not a hand total.',
   'lesson.fu.floor':
     'And an open hand that happens to earn nothing at all is floored at 30 fu rather than 20, since it cannot claim pinfu to justify the lower number.',
 
