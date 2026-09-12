@@ -38,14 +38,46 @@ const TRIPLET_ROWS: { key: MessageKey; fu: number; tiles: string; concealed: boo
  * Deliberately not `Hand`: this is a meld on its own rather than a hand, and
  * `Hand` would want a concealed run and a winning tile to sit it beside.
  *
- * The two conventions it borrows from `Hand` are the ones a player already reads
- * at a table — a claimed tile is laid sideways, and a concealed kan hides its
- * outer two tiles — which is what makes the concealed/open distinction legible
- * without a label.
+ * The conventions it borrows from `Hand` are the ones a player already reads at
+ * a table — a claimed tile is laid sideways, and a concealed kan hides its outer
+ * two tiles — which is what makes the distinctions legible without a label.
  */
-function MeldFigure({ tiles, concealed }: { tiles: string; concealed: boolean }) {
+function MeldFigure({
+  tiles,
+  concealed,
+  added = false,
+}: {
+  tiles: string
+  concealed: boolean
+  /**
+   * Draw as an added kan: the fourth tile stacked on the claimed one, the way it
+   * is physically placed on the pon already sitting on the table.
+   */
+  added?: boolean
+}) {
   const parsed = parseTiles(tiles)
   const isKan = parsed.length === 4
+
+  if (added) {
+    // The first three tiles are the original pon, so the claimed one is still
+    // sideways; the fourth goes on top of it rather than beside it, which is
+    // exactly how the meld is built and how it is recognised across the table.
+    const [claimed, second, third, fourth] = parsed
+    return (
+      // `shrink-0`, because a flex row shrinks its items to fit and the rotated
+      // tiles resist it (their box is set by a wrapper, not by the image), so
+      // without it the upright tiles give up all the space and end up half the
+      // size of the sideways ones.
+      <span className="flex shrink-0 items-end gap-px">
+        <span className="flex flex-col justify-end">
+          <RotatedSlot tile={fourth} />
+          <RotatedSlot tile={claimed} />
+        </span>
+        <Tile tile={second} size="xs" />
+        <Tile tile={third} size="xs" />
+      </span>
+    )
+  }
 
   return (
     <span className="flex items-end gap-px">
@@ -69,6 +101,23 @@ function MeldFigure({ tiles, concealed }: { tiles: string; concealed: boolean })
           </span>
         )
       })}
+    </span>
+  )
+}
+
+/**
+ * One sideways tile, in a box the size it visually occupies.
+ *
+ * A rotation is a CSS transform, so the tile still reserves its upright box —
+ * portrait, and a third too narrow for what is now on screen. This restates the
+ * real footprint: a tile is 3:4, so a quarter turn is 4:3 of the same width.
+ * Without it, stacked tiles overlap each other exactly as a sideways tile in a
+ * row overlaps its neighbour.
+ */
+function RotatedSlot({ tile }: { tile: number }) {
+  return (
+    <span className="grid aspect-[4/3] w-[133%] shrink-0 place-items-center">
+      <Tile tile={tile} size="xs" rotated />
     </span>
   )
 }
@@ -208,6 +257,20 @@ export function FuLesson() {
           {t.t('lesson.fu.exMinkanNote')}
         </p>
       </Example>
+
+      {/* The third way to a kan. It scores as an open kan — the fu table above
+          already covers the number — so what this section adds is how the meld
+          is built and the one thing that is unique to it, chankan. */}
+      <Example title={t.t('lesson.fu.exShouminkan')}>
+        <span className="inline-flex">
+          <MeldFigure tiles="1111m" concealed={false} added />
+        </span>
+        <p className="mt-2.5 text-sm text-black/60 dark:text-white/60">
+          {t.t('lesson.fu.exShouminkanNote')}
+        </p>
+      </Example>
+
+      <p>{t.t('lesson.fu.chankan')}</p>
 
       <p>{t.t('lesson.fu.floor')}</p>
     </Lesson>

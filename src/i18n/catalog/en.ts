@@ -584,13 +584,16 @@ export const messages = {
   'lesson.fu.exPinfu': 'Pinfu: all runs, a worthless pair, and a two-sided wait',
   'lesson.fu.h2Kan': 'A kan, closed and open',
   'lesson.fu.kanIntro':
-    'A kan is worth practising on its own, because it is the one meld whose fu you cannot reach from the triplet rules — it quadruples rather than doubles. The same hand appears twice below, differing only in how the four 1m were obtained.',
+    'A kan is worth practising on its own, because it is the one meld whose fu you cannot reach from the triplet rules — it quadruples rather than doubles. There are three ways to get one, and all three below use the same four 1m.',
   'lesson.fu.exAnkan': 'Closed kan (ankan) — 32 fu for the meld',
   'lesson.fu.exAnkanNote':
     'Declared from your own hand, so it is concealed terminals: 8 fu doubled twice over, or 32. The hand also stays closed around it, which is why the closed-hand bonus still applies and riichi remains available.',
   'lesson.fu.exMinkan': 'Open kan (minkan) — 16 fu for the meld',
   'lesson.fu.exMinkanNote':
     'The same four tiles, but the last came from a discard. That halves the meld to 16 fu and opens the hand, costing the closed-hand bonus as well. This hand has no yaku once it is open, so as it stands it cannot win at all — the meld fu is what to read here, not a hand total.',
+  'lesson.fu.exShouminkan': 'Added kan (shouminkan) — 16 fu for the meld',
+  'lesson.fu.exShouminkanNote': 'The third way: you called pon on the 1m earlier, then drew the fourth yourself and added it to the meld already sitting on the table. That fourth tile is stacked on the one you originally claimed — which is how the shape is recognised from across the table. It scores exactly as an open kan does, 16 fu for terminals, because the hand has been open since the pon.',
+  'lesson.fu.chankan': 'One thing applies to an added kan alone: a player waiting on that tile may snatch it as you declare it, winning by Chankan. So adding the fourth tile is never quite free, especially when the tile looks useful to somebody else.',
   'lesson.fu.floor':
     'And an open hand that happens to earn nothing at all is floored at 30 fu rather than 20, since it cannot claim pinfu to justify the lower number.',
 
