@@ -108,11 +108,20 @@ export function FuLesson() {
       </p>
 
       <LessonHeading>{t.t('lesson.fu.h2Special')}</LessonHeading>
-      <p>
-        <strong>{t.t('lesson.fu.specialA')}</strong> {t.t('lesson.fu.specialB')}{' '}
-        <strong>{t.t('lesson.fu.specialC')}</strong> {t.t('lesson.fu.specialD')}{' '}
-        <strong>{t.t('lesson.fu.specialE')}</strong> {t.t('lesson.fu.specialF')}
-      </p>
+      {/* One bullet each: three unrelated exceptions run together as prose read
+          as one argument, and a learner scanning for "what is seven pairs worth"
+          had to find it mid-sentence. */}
+      <ul className="list-disc space-y-1 pl-5">
+        <li>
+          <strong>{t.t('lesson.fu.specialA')}</strong> {t.t('lesson.fu.specialB')}
+        </li>
+        <li>
+          <strong>{t.t('lesson.fu.specialC')}</strong> {t.t('lesson.fu.specialD')}
+        </li>
+        <li>
+          <strong>{t.t('lesson.fu.specialE')}</strong> {t.t('lesson.fu.specialF')}
+        </li>
+      </ul>
 
       <Example title={t.t('lesson.fu.exPinfu')}>
         <Hand tiles={parseTiles('234m22p345678s567s')} size="sm" sort={false} />
