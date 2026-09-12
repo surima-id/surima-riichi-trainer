@@ -64,22 +64,32 @@
 }
 
 /**
- * The app is light, on every machine.
+ * The app is the felt table, on every machine.
  *
- * Tailwind's `dark:` variant follows `prefers-color-scheme` by default, so a
- * visitor whose OS is set to dark got a half-translated palette: the surfaces
- * flipped but the tile art, which is a fixed set of SVGs with an ivory face and
- * no border, did not. The White Dragon — a blank ivory face — then vanished
- * into the card behind it.
+ * The subject of every page is a row of tiles, and tiles are read off a table,
+ * not off paper. So the deep felt green is the app — not a preference, not a
+ * mode, and not a follow-on from whatever the visitor's OS is set to.
  *
- * Rather than hunt down the ~190 `dark:` utilities, the variant is redefined to
- * key off a `.dark` class that nothing ever sets. They stay in the source,
- * inert, ready for the day the tile art has a dark treatment to match.
+ * It is spelled as Tailwind's `dark:` variant made unconditional, rather than
+ * as ~190 rewritten utilities. That variant already described this exact
+ * palette and every surface in the app already carries its half of the pair, so
+ * pinning it on turns the whole set at once: `dark:bg-felt-800` on a card is
+ * simply what a card is now. Two consequences worth knowing when editing:
+ * a `dark:` utility is now always the one that applies, and its light-mode twin
+ * beside it is dead weight that only still reads as a default.
+ *
+ * Following `prefers-color-scheme` is what broke a reader's page: the surfaces
+ * flipped but the tile art could not, since it is a vendored SVG set with one
+ * fixed ivory face — and the White Dragon, whose face is legitimately blank,
+ * vanished into the card behind it. Pinning the theme fixes that in the other
+ * direction, and ivory tiles on green is the pairing the art was drawn for.
  */
-@custom-variant dark (&:where(.dark, .dark *));
+@custom-variant dark (&);
 
 :root {
-  color-scheme: light;
+  /* Tells the browser to paint its own furniture — form controls, scrollbars,
+     the canvas behind the page — to match. */
+  color-scheme: dark;
 
   /* Per-element animation offset, so a list can stagger without a bespoke
      keyframe per item. Set it inline, or with the `[--stagger:120ms]` utility. */
@@ -102,13 +112,13 @@ body {
   /* Fluid type only pays off if the base size is itself fluid. */
   font-size: var(--text-base);
   line-height: var(--text-base--line-height);
-  color: #14231c;
-  background-color: var(--color-felt-50);
+  color: #e8f1ec;
+  background-color: var(--color-felt-900);
   /* The felt: two soft pools of light over a flat ground, so the page reads as
      a table rather than a document. Fixed, so it does not swim while scrolling. */
   background-image:
-    radial-gradient(60rem 40rem at 15% -10%, rgb(255 255 255 / 0.9), transparent 60%),
-    radial-gradient(50rem 35rem at 100% 0%, rgb(107 157 128 / 0.16), transparent 65%);
+    radial-gradient(60rem 40rem at 15% -10%, rgb(67 120 91 / 0.28), transparent 60%),
+    radial-gradient(50rem 35rem at 100% 0%, rgb(211 161 58 / 0.08), transparent 65%);
   background-attachment: fixed;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
