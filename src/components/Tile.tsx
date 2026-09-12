@@ -168,12 +168,20 @@ export function Tile({
 
   const image = (
     <>
+      {/*
+        The frame carries a drop shadow because the asset has no border: it is a
+        near-white rounded rectangle, and on a white card a tile whose glyph is
+        empty — the White Dragon — would otherwise be invisible. The shadow
+        follows the SVG's own rounded silhouette, which a `box-shadow` on the
+        wrapper could not. It lives on this layer rather than on the wrapper so
+        it does not fight the `drop-shadow-*` the hover and selected states set.
+      */}
       <img
         src="/tiles/Front.svg"
         alt=""
         aria-hidden="true"
         draggable={false}
-        className="block w-full"
+        className="block w-full drop-shadow-[0_1px_2px_rgba(15,38,28,0.28)]"
         style={{ aspectRatio: TILE_ASPECT }}
       />
       <img

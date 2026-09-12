@@ -63,8 +63,23 @@
   --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
+/**
+ * The app is light, on every machine.
+ *
+ * Tailwind's `dark:` variant follows `prefers-color-scheme` by default, so a
+ * visitor whose OS is set to dark got a half-translated palette: the surfaces
+ * flipped but the tile art, which is a fixed set of SVGs with an ivory face and
+ * no border, did not. The White Dragon — a blank ivory face — then vanished
+ * into the card behind it.
+ *
+ * Rather than hunt down the ~190 `dark:` utilities, the variant is redefined to
+ * key off a `.dark` class that nothing ever sets. They stay in the source,
+ * inert, ready for the day the tile art has a dark treatment to match.
+ */
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
-  color-scheme: light dark;
+  color-scheme: light;
 
   /* Per-element animation offset, so a list can stagger without a bespoke
      keyframe per item. Set it inline, or with the `[--stagger:120ms]` utility. */
@@ -98,16 +113,6 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
-}
-
-@media (prefers-color-scheme: dark) {
-  body {
-    color: #e8f1ec;
-    background-color: var(--color-felt-900);
-    background-image:
-      radial-gradient(60rem 40rem at 15% -10%, rgb(67 120 91 / 0.28), transparent 60%),
-      radial-gradient(50rem 35rem at 100% 0%, rgb(211 161 58 / 0.08), transparent 65%);
-  }
 }
 
 /* ------------------------------------------------------------------ Motion */
