@@ -523,10 +523,10 @@ export const messages = {
   'lesson.fu.exPinfu': 'Pinfu: semua urutan, pasangan tanpa nilai, dan tunggu dua sisi',
   'lesson.fu.h2Kan': 'Kan, tertutup dan terbuka',
   'lesson.fu.kanIntro': 'Kan layak dilatih tersendiri, karena inilah satu-satunya meld yang fu-nya tidak bisa kamu peroleh dari aturan triplet — nilainya dikali empat, bukan dua. Tangan yang sama muncul dua kali di bawah, hanya berbeda pada cara keempat 1m didapat.',
-  'lesson.fu.exAnkan': 'Kan tertutup (ankan) — {fu}',
+  'lesson.fu.exAnkan': 'Kan tertutup (ankan) — 32 fu untuk meld-nya',
   'lesson.fu.exAnkanNote': 'Dideklarasikan dari tanganmu sendiri, jadi ini terminal tertutup: 8 fu dikali dua sebanyak dua kali, yaitu 32. Tangan juga tetap tertutup, sehingga bonus tangan tertutup tetap berlaku dan riichi masih bisa diambil.',
-  'lesson.fu.exMinkan': 'Kan terbuka (minkan) — {fu}',
-  'lesson.fu.exMinkanNote': 'Empat tile yang sama, tetapi yang terakhir berasal dari buangan. Itu memotong meld menjadi 16 fu dan membuka tangan, sehingga bonus tangan tertutup ikut hilang — keduanya bersama menghasilkan selisih 30 fu pada tile yang identik.',
+  'lesson.fu.exMinkan': 'Kan terbuka (minkan) — 16 fu untuk meld-nya',
+  'lesson.fu.exMinkanNote': 'Empat tile yang sama, tetapi yang terakhir berasal dari buangan. Itu memotong meld menjadi 16 fu dan membuka tangan, sehingga bonus tangan tertutup ikut hilang. Perhatikan bahwa tile ini tidak punya yaku begitu tangannya terbuka, jadi apa adanya tangan ini belum bisa menang — yang perlu dibaca di sini adalah fu meld-nya, bukan total tangan.',
   'lesson.fu.floor': 'Dan tangan terbuka yang kebetulan tidak memperoleh apa pun dibatasi di 30 fu, bukan 20, karena tangan itu tidak bisa mengklaim pinfu untuk membenarkan angka yang lebih rendah.',
   // ---- Lesson: Score ----
   'lesson.score.subtitle': 'Han dan fu masuk, poin keluar.',

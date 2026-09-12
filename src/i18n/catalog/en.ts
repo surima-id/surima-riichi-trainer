@@ -584,12 +584,12 @@ export const messages = {
   'lesson.fu.h2Kan': 'A kan, closed and open',
   'lesson.fu.kanIntro':
     'A kan is worth practising on its own, because it is the one meld whose fu you cannot reach from the triplet rules — it quadruples rather than doubles. The same hand appears twice below, differing only in how the four 1m were obtained.',
-  'lesson.fu.exAnkan': 'Closed kan (ankan) — {fu}',
+  'lesson.fu.exAnkan': 'Closed kan (ankan) — 32 fu for the meld',
   'lesson.fu.exAnkanNote':
     'Declared from your own hand, so it is concealed terminals: 8 fu doubled twice over, or 32. The hand also stays closed around it, which is why the closed-hand bonus still applies and riichi remains available.',
-  'lesson.fu.exMinkan': 'Open kan (minkan) — {fu}',
+  'lesson.fu.exMinkan': 'Open kan (minkan) — 16 fu for the meld',
   'lesson.fu.exMinkanNote':
-    'The same four tiles, but the last came from a discard. That halves the meld to 16 fu and opens the hand, costing the closed-hand bonus as well — the two together are a 30 fu swing on identical tiles.',
+    'The same four tiles, but the last came from a discard. That halves the meld to 16 fu and opens the hand, costing the closed-hand bonus as well. Note that these tiles have no yaku once the hand is open, so as it stands it cannot win at all — the meld fu is what to read here, not a hand total.',
   'lesson.fu.floor':
     'And an open hand that happens to earn nothing at all is floored at 30 fu rather than 20, since it cannot claim pinfu to justify the lower number.',
 
