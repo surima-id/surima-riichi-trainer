@@ -355,12 +355,9 @@ export const messages = {
   'drill.yaku.complete.explain': 'The hand accepts {tiles} — a {shape} wait — and completes as {yaku}.',
   'drill.han.count.title': 'Count the han',
   'drill.han.count.desc': 'Total a hand\u2019s yaku, remembering the open-hand penalty.',
-  'drill.han.count.prompt': 'How many han is this hand worth?',
+  'drill.han.count.prompt': 'What is this hand worth?',
   'drill.han.count.hint':
-    'Include dora. Remember that opening the hand costs some yaku a han.',
-  'drill.han.count.promptYakuman': 'This hand is a yakuman. How many is it worth?',
-  'drill.han.count.hintYakuman':
-    'A yakuman replaces han and fu entirely, so there is nothing to add up — read which pattern it is, and whether it counts once or twice.',
+    'Include dora. Remember that opening the hand costs some yaku a han, and that a hand carrying a yakuman pattern is not counted in han at all.',
 
   'drill.fu.count.title': 'Count the fu',
   'drill.fu.count.desc': 'Add up the minor points, then round.',
@@ -403,7 +400,7 @@ export const messages = {
 
   // ---- The context strip above a drill hand ----
   'context.dora': 'Dora',
-  'context.doraWithUra': 'Dora / Ura',
+  'context.ura': 'Ura',
   'context.seatWind': 'Seat Wind',
   'context.roundWind': 'Prevailing Wind',
   'context.tsumo': 'Tsumo',

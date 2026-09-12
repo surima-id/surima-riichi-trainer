@@ -331,11 +331,8 @@ export const messages = {
   'drill.yaku.complete.explain': 'Tangan ini menerima {tiles} — tunggu {shape} — dan lengkap menjadi {yaku}.',
   'drill.han.count.title': 'Hitung han',
   'drill.han.count.desc': 'Jumlahkan yaku tangan, ingat penalti tangan terbuka.',
-  'drill.han.count.prompt': 'Berapa han nilai tangan ini?',
-  'drill.han.count.hint': 'Sertakan dora. Ingat bahwa membuka tangan mengurangi satu han pada sebagian yaku.',
-  'drill.han.count.promptYakuman': 'Tangan ini adalah yakuman. Berapa nilainya?',
-  'drill.han.count.hintYakuman':
-    'Yakuman menggantikan han dan fu sepenuhnya, jadi tidak ada yang perlu dijumlahkan — baca polanya, dan apakah ia dihitung sekali atau dua kali.',
+  'drill.han.count.prompt': 'Berapa nilai tangan ini?',
+  'drill.han.count.hint': 'Sertakan dora. Ingat bahwa membuka tangan mengurangi satu han pada sebagian yaku, dan tangan dengan pola yakuman tidak dihitung dalam han sama sekali.',
   'drill.fu.count.title': 'Hitung fu',
   'drill.fu.count.desc': 'Jumlahkan poin kecil, lalu bulatkan.',
   'drill.fu.count.prompt': 'Berapa fu nilai tangan ini?',
@@ -370,7 +367,7 @@ export const messages = {
   'drill.efficiency.discard.rowAway': '{n} lagi',
   // ---- The context strip above a drill hand ----
   'context.dora': 'Dora',
-  'context.doraWithUra': 'Dora / Ura',
+  'context.ura': 'Ura',
   'context.seatWind': 'Angin Kursi',
   'context.roundWind': 'Angin Ronde',
   'context.tsumo': 'Tsumo',

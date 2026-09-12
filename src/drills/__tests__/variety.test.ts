@@ -52,6 +52,57 @@ describe('han.count', () => {
     expect(share, 'poses yakuman too often to be a treat').toBeLessThan(0.2)
   })
 
+  /**
+   * The question must not concede its own answer.
+   *
+   * Yakuman hands first got a prompt that said so — "This hand is a yakuman.
+   * How many is it worth?" — which eliminated the han options before the tiles
+   * were looked at and, since most yakuman are a single one, let a player win
+   * four times in five by picking "Yakuman" blind. Recognizing that a hand has
+   * crossed the line is most of the skill here, so the prompt has to stay
+   * neutral.
+   *
+   * The option list is the same leak wearing a hat: if the word only ever
+   * appears on hands that are one, spotting the odd option out replaces reading
+   * the hand. It appeared on 100% of yakuman hands and 0% of the rest before
+   * ordinary big hands started being offered it as a decoy.
+   */
+  it('never announces that a hand is a yakuman', () => {
+    const generator = ALL_GENERATORS.find((g) => g.id === 'han.count')!
+    for (const seed of SEEDS) {
+      const question = generator.generate(seed, t)
+      if (question.drillId !== 'han.count') continue
+      expect(question.prompt, `seed ${seed} gave the answer away`).toBe(
+        t.t('drill.han.count.prompt'),
+      )
+    }
+  })
+
+  it('offers a yakuman option on hands that are not one', () => {
+    const generator = ALL_GENERATORS.find((g) => g.id === 'han.count')!
+    let withOption = 0
+    let actuallyYakuman = 0
+
+    for (const seed of SEEDS) {
+      const question = generator.generate(seed, t)
+      if (question.drillId !== 'han.count') continue
+      const options = question.choices ?? []
+      if (!options.some((c) => c.label.startsWith(t.t('unit.yakuman')))) continue
+      withOption++
+      if (options.find((c) => c.correct)!.label.startsWith(t.t('unit.yakuman'))) {
+        actuallyYakuman++
+      }
+    }
+
+    expect(withOption, 'no question offered a yakuman option at all').toBeGreaterThan(0)
+    // Below half means seeing the option is evidence *against*, so a player who
+    // hunts for it rather than reading the hand does worse than chance.
+    expect(
+      actuallyYakuman / withOption,
+      'a yakuman option still gives the answer away',
+    ).toBeLessThan(0.5)
+  })
+
   it('does not lean on any single answer', () => {
     const counts = new Map<string, number>()
     for (const label of labels) counts.set(label, (counts.get(label) ?? 0) + 1)

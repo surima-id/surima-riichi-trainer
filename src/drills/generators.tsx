@@ -822,25 +822,36 @@ const hanCount: Generator = {
     const rng = makeRng(seed)
 
     /**
-     * A yakuman is counted, not added up.
+     * A yakuman is recognized, not added up.
      *
-     * Its han field is zero — the tier replaces han and fu outright — so asking
-     * "how many han" of one would key the answer to a number the hand does not
-     * have. The question becomes how many yakuman it is worth instead, which is
-     * the reading the hand actually calls for, and the options are the
-     * neighbouring multiples plus the 13 han a player who tried to count it up
-     * would arrive at.
+     * Its han field is zero — the tier replaces han and fu outright — so the
+     * plain "how many han" prompt would key the answer to a number the hand does
+     * not have. What it is worth is asked instead.
+     *
+     * The prompt must not say the hand *is* a yakuman. An earlier version did,
+     * and it gave the answer away twice over: it eliminated the "13 han" option
+     * before the tiles were looked at, and since 82% of these hands are a single
+     * yakuman, picking the plain "Yakuman" won four times in five without any
+     * reading at all. Recognizing that a hand has crossed into yakuman territory
+     * is most of the skill being drilled, so the question cannot be allowed to
+     * concede it in its own first sentence.
+     *
+     * So the same neutral prompt is used as for every other hand, and the
+     * options mix han counts with yakuman multiples. A player has to decide
+     * which kind of answer this hand even takes, which is the real question.
      */
     if (scored.yakuman > 0) {
       const answer = `yakuman:${scored.yakuman}`
       const near = [
         ...[1, 2, 3].filter((n) => n !== scored.yakuman).map((n) => `yakuman:${n}`),
-        // The count a player who tried to add the hand up would arrive at. It
-        // is the mistake the question is really about: a yakuman is recognized,
-        // not totalled, and 13 han is a counted yakuman rather than this.
+        // The counts a player who tried to total the hand up would reach. 13 is
+        // the kazoe boundary and the most tempting of them: a counted yakuman is
+        // reached by adding han, and this hand was not.
         'han:13',
+        'han:11',
+        'han:6',
       ]
-      const renderYakuman = (value: string) => {
+      const renderValue = (value: string) => {
         const n = Number(value.slice(value.indexOf(':') + 1))
         if (value.startsWith('han:')) return t.han(n)
         return n > 1 ? t.t('unit.yakumanMultiple', { n }) : t.t('unit.yakuman')
@@ -848,13 +859,14 @@ const hanCount: Generator = {
       return {
         drillId: 'han.count',
         kind: 'choice',
-        prompt: t.t('drill.han.count.promptYakuman'),
-        hint: t.t('drill.han.count.hintYakuman'),
+        // Deliberately the ordinary prompt: see above.
+        prompt: t.t('drill.han.count.prompt'),
+        hint: t.t('drill.han.count.hint'),
         tiles: built.hand.concealed,
         calls: built.hand.calls,
         winTile: built.hand.winTile,
         context: handContext(built, t),
-        choices: choices(rng, answer, near, (v) => v, renderYakuman),
+        choices: choices(rng, answer, near, (v) => v, renderValue),
         explanation: <Breakdown scored={scored} dealer={built.dealer} />,
         seed,
       }
@@ -874,6 +886,39 @@ const hanCount: Generator = {
     const near = [-2, -1, 1, 2, 3, 4]
       .map((offset) => scored.han + offset)
       .filter((n) => n >= 1 && n !== scored.han)
+      .map((n) => `han:${n}`)
+
+    /**
+     * A big hand is sometimes offered a yakuman option it did not earn.
+     *
+     * Otherwise the option list itself answers the question. Yakuman hands are
+     * the only ones whose choices contain the word, so a player never has to
+     * judge whether *this* hand crossed the line — they just look for the
+     * distinctive option and take it. Measured, that tell was perfect: a
+     * yakuman option appeared on 100% of yakuman hands and 0% of the rest.
+     *
+     * It is offered only from 5 han up, where mistaking a big hand for a
+     * yakuman is a mistake a learner actually makes. Dangling it beside a 2 han
+     * hand would be a different giveaway — the one option that is obviously
+     * not it.
+     */
+    const wantsDecoy = scored.han >= 5 && rng.next() < 0.55
+
+    const renderValue = (value: string) => {
+      const n = Number(value.slice(value.indexOf(':') + 1))
+      if (value.startsWith('han:')) return t.han(n)
+      return n > 1 ? t.t('unit.yakumanMultiple', { n }) : t.t('unit.yakuman')
+    }
+
+    /**
+     * The decoy takes a slot, rather than joining the pool.
+     *
+     * `choices` fills three slots from the candidates it is given, so a decoy
+     * listed alongside six han counts is mostly shuffled straight back out —
+     * it survived 15% of the time, which left the tell nearly as strong as
+     * before. Handing it a shortened pool reserves its place.
+     */
+    const pool = wantsDecoy ? ['yakuman:1', ...near.slice(0, 2)] : near
 
     return {
       drillId: 'han.count',
@@ -884,7 +929,7 @@ const hanCount: Generator = {
       calls: built.hand.calls,
       winTile: built.hand.winTile,
       context: handContext(built, t),
-      choices: choices(rng, scored.han, near, String, (n) => t.han(n)),
+      choices: choices(rng, `han:${scored.han}`, pool, (v) => v, renderValue),
       explanation: <Breakdown scored={scored} dealer={built.dealer} />,
       seed,
     }
