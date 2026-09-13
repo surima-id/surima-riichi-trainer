@@ -64,6 +64,29 @@
 }
 
 /**
+ * Tile widths.
+ *
+ * Each is a clamp over the same 400px-1440px viewport as `--text-*`, so tiles
+ * and the labels beside them grow together. They live here as custom properties
+ * rather than inline in `Tile.tsx` for the sake of the short-viewport rule
+ * below: one media query can then restate four values and every tile in the app
+ * follows, where four arbitrary Tailwind classes would each need overriding at
+ * a higher specificity.
+ */
+/**
+ * A phone held sideways is wide and very short — 844x390 on an iPhone 13.
+ *
+ * Width is what the clamps above measure, so that screen asks for the *largest*
+ * tiles in the app on the one viewport with the least room to put them: a hand
+ * alone came to more than the full height, pushing the answers off the bottom.
+ * Landscape is also the orientation immersive mode asks the reader to turn to,
+ * so it has to be the one that fits best rather than worst.
+ *
+ * Height-keyed rather than `orientation: landscape`, because what actually
+ * constrains the layout is the short edge: a tablet held sideways has both the
+ * width and the height, and should keep the full-size tiles.
+ */
+/**
  * The app is the felt table, on every machine.
  *
  * The subject of every page is a row of tiles, and tiles are read off a table,
@@ -86,10 +109,30 @@
  */
 @custom-variant dark (&);
 
+/**
+ * `short:` — a viewport with little vertical room, i.e. a phone held sideways.
+ *
+ * It exists because `sm:` is the wrong axis for this. A landscape phone is
+ * 844px wide and 390px tall, so every `sm:` rule in the app — all of them
+ * written to mean "there is room now" — fires on the one screen with the least
+ * room there is. Anything that costs height rather than width has to ask this
+ * instead.
+ *
+ * The 500px threshold clears a phone in landscape and stays under a small
+ * tablet in portrait, which has the height to spare.
+ */
+@custom-variant short (@media (max-height: 500px));
+
 :root {
   /* Tells the browser to paint its own furniture — form controls, scrollbars,
      the canvas behind the page — to match. */
   color-scheme: dark;
+
+  /* The tile scale described above. */
+  --tile-xs: clamp(2.25rem, 2.03rem + 0.87vw, 2.75rem);
+  --tile-sm: clamp(2.875rem, 2.59rem + 1.15vw, 3.5rem);
+  --tile-md: clamp(3.5rem, 3.05rem + 1.83vw, 4.5rem);
+  --tile-lg: clamp(4.5rem, 3.83rem + 2.69vw, 6rem);
 
   /* Per-element animation offset, so a list can stagger without a bespoke
      keyframe per item. Set it inline, or with the `[--stagger:120ms]` utility. */
@@ -102,8 +145,73 @@ body,
   height: 100%;
 }
 
+/**
+ * A phone held sideways is wide and very short — 844x390 on an iPhone 13.
+ *
+ * Width is what the clamps above measure, so that screen asks for the *largest*
+ * tiles in the app on the one viewport with the least room to put them: a hand
+ * alone came to more than the full height, pushing the answers off the bottom.
+ * Landscape is also the orientation immersive mode asks the reader to turn to,
+ * so it has to be the one that fits best rather than worst.
+ *
+ * Height-keyed rather than `orientation: landscape`, because what actually
+ * constrains the layout is the short edge: a tablet held sideways has both the
+ * width and the height, and should keep the full-size tiles.
+ */
+@media (max-height: 500px) {
+  :root {
+    --tile-xs: 1.75rem;
+    --tile-sm: 2.125rem;
+    --tile-md: 2.5rem;
+    --tile-lg: 3.25rem;
+  }
+
+  /* The type has the same problem as the tiles, for the same reason: these are
+     the widest viewports in the app and the shortest, so the fluid scale sets
+     its largest sizes exactly where there is no vertical room for them. Only the
+     three sizes prose is set in — the display sizes on the results screen are
+     the payoff, and should still land. */
+  :root {
+    --text-sm: 0.875rem;
+    --text-base: 0.9375rem;
+    --text-lg: 1.0625rem;
+  }
+}
+
 html {
   -webkit-text-size-adjust: 100%;
+}
+
+/**
+ * While the quiz holds the screen, the page behind it does not scroll.
+ *
+ * Without this a touch that runs off the end of the quiz scrolls the lesson
+ * underneath — invisible at the time, and waiting at the wrong position when
+ * immersive mode is dismissed. `position: fixed` is what actually stops iOS
+ * Safari, which ignores `overflow: hidden` on the body; the `width` keeps that
+ * from collapsing the page to its content, and the `overscroll-behavior` stops
+ * the pull-to-refresh gesture a drag past the top of the quiz would otherwise
+ * trigger mid-run.
+ */
+/**
+ * Extends a control's touch area beyond its painted box, vertically.
+ *
+ * The pseudo-element takes no space and paints nothing — it only catches
+ * touches, so a row of tiles keeps its exact layout while each tile becomes
+ * easier to hit. `inset` is negative on the block axis alone: growing it
+ * sideways would overlap the neighbouring tile and steal its taps.
+ */
+.touch-target::after {
+  content: '';
+  position: absolute;
+  inset: -0.5rem 0;
+}
+
+body.immersive-open {
+  position: fixed;
+  width: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
 }
 
 body {

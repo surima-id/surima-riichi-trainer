@@ -25,7 +25,10 @@ export function Card({
 }) {
   return (
     <div
-      className={`rounded-2xl border border-black/5 bg-white/90 p-5 shadow-sm backdrop-blur-sm transition duration-300 sm:p-6 dark:border-white/10 dark:bg-felt-800/90 ${className}`}
+      /* The base padding is the phone's, widened at `sm:`. A card's side padding
+         is width taken from the hand inside it, and at 20px a side that was most
+         of a tile on a 390px screen. */
+      className={`rounded-2xl border border-black/5 bg-white/90 p-3.5 shadow-sm backdrop-blur-sm transition duration-300 sm:p-6 short:p-3 dark:border-white/10 dark:bg-felt-800/90 ${className}`}
       style={style}
     >
       {children}

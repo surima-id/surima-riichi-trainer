@@ -6,7 +6,7 @@
 import { type Call } from '../engine/parse'
 import { type Tile as TileValue, face, sortTiles } from '../engine/tiles'
 import { useT } from '../i18n'
-import { Tile, type TileSize } from './Tile'
+import { FLUID_SIZE_CLASSES, Tile, type TileSize } from './Tile'
 
 export interface HandProps {
   tiles: TileValue[]
@@ -56,8 +56,16 @@ export interface HandProps {
 
 /** The gap between adjacent tiles within the concealed run or a meld, in px. */
 const TILE_GAP = 2
-/** The wider gap that sets the drawn tile and each called meld apart, in px. */
-const GROUP_GAP = 20
+/**
+ * The wider gap that sets the drawn tile and each called meld apart.
+ *
+ * Fluid rather than a flat 20px, because the gaps are width the tiles do not
+ * get. A fourteen-tile hand on a 390px phone has about 27px per tile to begin
+ * with, and two fixed 20px gaps were taking a tile and a half's worth of that
+ * to say something a smaller gap says just as clearly. It reaches its full
+ * 20px by the time there is room for it.
+ */
+const GROUP_GAP = 'clamp(0.5rem, 0.06rem + 1.8vw, 1.25rem)'
 
 /** Renders one called meld, with the claimed tile turned sideways. */
 function CalledMeld({ call, size }: { call: Call; size: TileSize }) {
@@ -140,11 +148,19 @@ export function Hand({
    * `w-max` sets the row's preferred width to the hand's natural width, which is
    * what keeps a short hand from stretching; `max-w-full` is the ceiling that
    * makes the shrinking kick in.
+   *
+   * The concealed run deliberately does *not* grow into leftover row width. It
+   * was tried — `flex-1` to spend the last few millimetres a squeezed hand gives
+   * up at the right — and it destroys the hand: growing is distributed to the
+   * run as a block while a called meld beside it keeps its natural size, so the
+   * thirteen tiles collapse to specks under one full-size meld. Tiles in a hand
+   * are read against each other and must all be at one scale, which means the
+   * row shrinks as a whole or not at all.
    */
   return (
     <div
       className="flex w-max max-w-full items-end"
-      style={{ columnGap: `${GROUP_GAP}px` }}
+      style={{ columnGap: GROUP_GAP }}
     >
       <div className="flex min-w-0 items-end" style={{ columnGap: `${TILE_GAP}px` }}>
         {display.map((tile, index) => (
@@ -163,11 +179,22 @@ export function Hand({
       </div>
 
       {winTile !== undefined && (
-        <div className="flex min-w-0 shrink-0 flex-col items-center gap-1">
+        /**
+         * The drawn tile, which shrinks along with the hand it completes.
+         *
+         * The column carries the tile's width class itself and the tile inside
+         * is told to `fill` it. That indirection is needed because this is the
+         * one tile that is not a horizontal flex item — it stacks over its
+         * Agari label — and in a column `shrink` governs height. Left as it
+         * was, the drawn tile held its full width while the thirteen beside it
+         * absorbed the entire shortfall, and on a phone that read as one
+         * legible tile standing over a row of slivers.
+         */
+        <div className={`flex flex-col items-center gap-1 ${FLUID_SIZE_CLASSES[size]}`}>
           <Tile
             tile={winTile}
             size={size}
-            fluid
+            fill
             highlight={highlighted.has(face(winTile)) ? highlightKind : 'none'}
             // The winning tile lands last, after the hand it completes.
             dealIndex={animate ? display.length : undefined}
@@ -181,7 +208,7 @@ export function Hand({
       )}
 
       {calls.length > 0 && (
-        <div className="flex min-w-0 items-end" style={{ columnGap: `${GROUP_GAP}px` }}>
+        <div className="flex min-w-0 items-end" style={{ columnGap: GROUP_GAP }}>
           {calls.map((call, i) => (
             <CalledMeld key={i} call={call} size={size} />
           ))}

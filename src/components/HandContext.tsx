@@ -34,7 +34,9 @@ function IndicatorRow({ tiles }: { tiles: TileValue[] }) {
         <span
           key={`slot-${i}`}
           aria-hidden="true"
-          className="w-[clamp(2.25rem,2.03rem+0.87vw,2.75rem)] rounded-[8%] bg-black/[0.07] dark:bg-white/10"
+          /* The same `--tile-xs` the tiles beside it use, so a half-filled
+             row does not step between a flipped indicator and an empty slot. */
+          className="w-(--tile-xs) rounded-[8%] bg-black/[0.07] dark:bg-white/10"
           style={{ aspectRatio: '3 / 4' }}
         />
       ))}
@@ -157,7 +159,7 @@ export function HandContext({
   const t = useT()
 
   return (
-    <div className="mb-1 flex flex-wrap items-center gap-x-4 gap-y-2 rounded-t-xl border border-black/5 bg-black/[0.04] px-3 py-2 dark:border-white/10 dark:bg-white/[0.06]">
+    <div className="mb-1 flex flex-wrap items-center gap-x-3 gap-y-1.5 rounded-t-xl border border-black/5 bg-black/[0.04] px-2 py-1.5 sm:gap-x-4 sm:gap-y-2 sm:px-3 sm:py-2 short:gap-x-3 short:gap-y-1 short:py-1 dark:border-white/10 dark:bg-white/[0.06]">
       {doraIndicators.length > 0 && (
         <DeadWall dora={doraIndicators} ura={uraIndicators} />
       )}

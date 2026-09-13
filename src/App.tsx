@@ -71,35 +71,34 @@ function LanguageToggle() {
   )
 }
 
-function Nav() {
+/**
+ * The chapter links, as one row.
+ *
+ * Nine links wrapped to three rows on a phone, which is a third of a short
+ * screen given over to navigation on every page. So below `sm` the row scrolls
+ * sideways instead of wrapping: one line tall, with the whole ladder still
+ * reachable by swiping it. `shrink-0` on each link is what stops flexbox from
+ * squeezing nine items into the visible width instead of overflowing;
+ * `snap-start` makes the swipe settle on a link rather than mid-word.
+ *
+ * The gradient at the right edge is the affordance — with a hidden scrollbar,
+ * a row that simply ends looks like a row that has ended. It is `hidden` under
+ * `sm:` because above that the links fit and nothing scrolls.
+ */
+function ChapterLinks() {
   const { t } = useI18n()
+  const linkClass = ({ isActive }: { isActive: boolean }) =>
+    `relative shrink-0 snap-start rounded-lg px-2.5 py-1.5 text-sm transition duration-200 sm:px-3 ${
+      isActive
+        ? 'bg-black/[0.07] font-semibold dark:bg-white/15'
+        : 'text-black/60 hover:bg-black/5 hover:text-black dark:text-white/60 dark:hover:bg-white/10 dark:hover:text-white'
+    }`
+
   return (
-    <nav className="sticky top-0 z-20 border-b border-black/10 bg-felt-50/80 backdrop-blur-md dark:border-white/10 dark:bg-felt-900/80">
-      <div className="mx-auto flex max-w-5xl flex-wrap items-center gap-x-1 gap-y-1 px-4 py-2.5 sm:px-6">
-        <Link
-          to="/"
-          className="mr-4 flex items-center gap-2 text-lg font-bold tracking-tight transition hover:opacity-80"
-        >
-          {/* A gold lozenge for a wordmark: the app has no logo, and the bare
-              word read as just another nav item beside the eight that follow. */}
-          <span
-            aria-hidden="true"
-            className="h-5 w-1.5 rounded-full bg-gradient-to-b from-gold-300 to-gold-500"
-          />
-          {t.t('app.name')}
-        </Link>
+    <div className="relative min-w-0 flex-1">
+      <div className="flex snap-x items-center gap-x-1 overflow-x-auto scroll-smooth [scrollbar-width:none] sm:flex-wrap sm:gap-y-1 sm:overflow-visible [&::-webkit-scrollbar]:hidden">
         {CHAPTERS.map((item) => (
-          <NavLink
-            key={item.path}
-            to={item.path}
-            className={({ isActive }) =>
-              `relative rounded-lg px-3 py-1.5 text-sm transition duration-200 ${
-                isActive
-                  ? 'bg-black/[0.07] font-semibold dark:bg-white/15'
-                  : 'text-black/60 hover:bg-black/5 hover:text-black dark:text-white/60 dark:hover:bg-white/10 dark:hover:text-white'
-              }`
-            }
-          >
+          <NavLink key={item.path} to={item.path} className={linkClass}>
             {t.t(item.navKey)}
           </NavLink>
         ))}
@@ -109,25 +108,47 @@ function Nav() {
         {OPTIONAL_CHAPTERS.length > 0 && (
           <span
             aria-hidden="true"
-            className="mx-1.5 hidden h-4 w-px shrink-0 bg-black/15 sm:block dark:bg-white/20"
+            className="mx-1.5 h-4 w-px shrink-0 bg-black/15 dark:bg-white/20"
           />
         )}
         {OPTIONAL_CHAPTERS.map((item) => (
-          <NavLink
-            key={item.path}
-            to={item.path}
-            className={({ isActive }) =>
-              `relative rounded-lg px-3 py-1.5 text-sm transition duration-200 ${
-                isActive
-                  ? 'bg-black/[0.07] font-semibold dark:bg-white/15'
-                  : 'text-black/60 hover:bg-black/5 hover:text-black dark:text-white/60 dark:hover:bg-white/10 dark:hover:text-white'
-              }`
-            }
-          >
+          <NavLink key={item.path} to={item.path} className={linkClass}>
             {t.t(item.navKey)}
           </NavLink>
         ))}
-        <div className="ml-auto flex items-center gap-3">
+      </div>
+      <span
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-felt-900 to-transparent sm:hidden"
+      />
+    </div>
+  )
+}
+
+function Nav() {
+  const { t } = useI18n()
+  return (
+    <nav className="sticky top-0 z-20 border-b border-black/10 bg-felt-50/80 backdrop-blur-md dark:border-white/10 dark:bg-felt-900/80">
+      <div className="mx-auto flex max-w-5xl items-center gap-x-2 px-3 py-2 sm:gap-x-1 sm:px-6 sm:py-2.5">
+        <Link
+          to="/"
+          className="flex shrink-0 items-center gap-2 text-base font-bold tracking-tight transition hover:opacity-80 sm:mr-4 sm:text-lg"
+        >
+          {/* A gold lozenge for a wordmark: the app has no logo, and the bare
+              word read as just another nav item beside the eight that follow. */}
+          <span
+            aria-hidden="true"
+            className="h-5 w-1.5 rounded-full bg-gradient-to-b from-gold-300 to-gold-500"
+          />
+          {/* On a phone the lozenge alone is the home link. The full wordmark was
+              taking half the strip and leaving the nine chapter links about
+              120px to scroll within — and the name is already on the page below
+              it, where the hero states it at four times the size. */}
+          <span className="hidden sm:inline">{t.t('app.name')}</span>
+          <span className="sr-only sm:hidden">{t.t('app.name')}</span>
+        </Link>
+        <ChapterLinks />
+        <div className="flex shrink-0 items-center gap-3">
           <MasteryChip />
           <LanguageToggle />
         </div>

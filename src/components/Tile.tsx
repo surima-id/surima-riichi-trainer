@@ -19,14 +19,18 @@ export type TileSize = 'xs' | 'sm' | 'md' | 'lg'
 /**
  * Tile widths, fluid for the same reason the type scale is: a hand is the
  * subject of most pages, and a fixed 56px tile that looked right on a phone is
- * lost on a desktop. Each clamp interpolates over the same 400px-1440px
- * viewport as `--text-*`, so tiles and labels grow together.
+ * lost on a desktop.
+ *
+ * The four values themselves live in `index.css` as `--tile-*`, so that a short
+ * viewport — a phone held sideways — can restate the whole scale in one media
+ * query. Inlining the clamps here instead meant four arbitrary Tailwind classes
+ * that a media query could only beat by out-specifying each one.
  */
 const SIZE_CLASSES: Record<TileSize, string> = {
-  xs: 'w-[clamp(2.25rem,2.03rem+0.87vw,2.75rem)]',
-  sm: 'w-[clamp(2.875rem,2.59rem+1.15vw,3.5rem)]',
-  md: 'w-[clamp(3.5rem,3.05rem+1.83vw,4.5rem)]',
-  lg: 'w-[clamp(4.5rem,3.83rem+2.69vw,6rem)]',
+  xs: 'w-(--tile-xs)',
+  sm: 'w-(--tile-sm)',
+  md: 'w-(--tile-md)',
+  lg: 'w-(--tile-lg)',
 }
 
 /**
@@ -42,11 +46,11 @@ const SIZE_CLASSES: Record<TileSize, string> = {
  * `min-w-0` is required: a flex item will not shrink below its content's
  * intrinsic width without it, and the tile's image counts as content.
  */
-const FLUID_SIZE_CLASSES: Record<TileSize, string> = {
-  xs: 'w-[clamp(2.25rem,2.03rem+0.87vw,2.75rem)] min-w-0 shrink',
-  sm: 'w-[clamp(2.875rem,2.59rem+1.15vw,3.5rem)] min-w-0 shrink',
-  md: 'w-[clamp(3.5rem,3.05rem+1.83vw,4.5rem)] min-w-0 shrink',
-  lg: 'w-[clamp(4.5rem,3.83rem+2.69vw,6rem)] min-w-0 shrink',
+export const FLUID_SIZE_CLASSES: Record<TileSize, string> = {
+  xs: 'w-(--tile-xs) min-w-0 shrink',
+  sm: 'w-(--tile-sm) min-w-0 shrink',
+  md: 'w-(--tile-md) min-w-0 shrink',
+  lg: 'w-(--tile-lg) min-w-0 shrink',
 }
 
 /** Every tile asset is 300×400, so one ratio keeps the stack aligned. */
@@ -87,6 +91,16 @@ export interface TileProps {
    * only has an effect on a tile that is a flex item.
    */
   fluid?: boolean
+  /**
+   * Takes the width of whatever contains it, instead of sizing itself.
+   *
+   * For the one place a tile is not a horizontal flex item: the winning tile,
+   * which sits in a column beside its Agari label. `shrink` cannot help there —
+   * in a column the main axis is vertical, so it governs height, and the tile
+   * held its full width and overflowed the column. The parent carries the width
+   * and the shrinking; this makes the tile follow.
+   */
+  fill?: boolean
 }
 
 const HIGHLIGHT_RING: Record<NonNullable<TileProps['highlight']>, string> = {
@@ -111,6 +125,7 @@ export function Tile({
   label,
   dealIndex,
   fluid = false,
+  fill = false,
 }: TileProps) {
   const t = useT()
   const name = label ?? (faceDown ? t.t('tile.faceDown') : t.tile(tile))
@@ -118,7 +133,7 @@ export function Tile({
 
   const classes = [
     'relative inline-block select-none rounded-[8%] transition duration-200 ease-out',
-    fluid ? FLUID_SIZE_CLASSES[size] : SIZE_CLASSES[size],
+    fill ? 'w-full min-w-0' : fluid ? FLUID_SIZE_CLASSES[size] : SIZE_CLASSES[size],
     rotated ? 'rotate-90' : '',
     // A picked tile lifts clear of the row and casts a shadow, so the choice
     // reads as a physical one rather than as a changed border colour.
@@ -126,8 +141,19 @@ export function Tile({
     dimmed ? 'opacity-40' : '',
     HIGHLIGHT_RING[highlight],
     dealIndex !== undefined ? 'anim-deal' : '',
+    /**
+     * A tappable tile gets a hit area taller than its face.
+     *
+     * Thirteen tiles plus a drawn one across a 390px phone leaves about 26px
+     * each, well under the ~44px a fingertip wants, and no layout fixes that:
+     * the width is the screen divided by the hand. Height is free, though —
+     * there is dead space above and below the row — so `touch-target` extends
+     * the hit area vertically without moving a pixel of the row. It is a
+     * partial answer, which is why a tile-select drill is also the strongest
+     * case for turning the phone sideways, where each tile gets 60px.
+     */
     onClick
-      ? 'cursor-pointer hover:-translate-y-1.5 hover:drop-shadow-md active:translate-y-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-500'
+      ? 'touch-target cursor-pointer hover:-translate-y-1.5 hover:drop-shadow-md active:translate-y-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-500'
       : '',
   ]
     .filter(Boolean)

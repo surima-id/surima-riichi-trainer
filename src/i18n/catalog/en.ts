@@ -167,6 +167,9 @@ export const messages = {
   'quiz.reviewTitle': 'Review',
   'quiz.reviewQuestion': 'Question {n}',
   'quiz.bestScore': 'Best: {n}/10',
+  'quiz.immersive': 'Full screen',
+  'quiz.immersiveExit': 'Exit full screen',
+  'quiz.rotate': 'Turn your phone sideways for larger tiles.',
 
   // ---- Progress ----
   'progress.mastered': 'Mastered',

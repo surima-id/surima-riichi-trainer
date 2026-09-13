@@ -159,6 +159,9 @@ export const messages = {
   'quiz.reviewTitle': 'Tinjauan',
   'quiz.reviewQuestion': 'Soal {n}',
   'quiz.bestScore': 'Terbaik: {n}/10',
+  'quiz.immersive': 'Layar penuh',
+  'quiz.immersiveExit': 'Keluar layar penuh',
+  'quiz.rotate': 'Putar ponsel ke samping agar tile lebih besar.',
   // ---- Progress ----
   'progress.mastered': 'Terkuasai',
   'progress.points': '{n} / {max} poin',

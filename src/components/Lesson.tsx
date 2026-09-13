@@ -79,7 +79,7 @@ export function Lesson({ id, title, subtitle, children, drills, tracks }: Lesson
   const body = <Prose>{children}</Prose>
 
   return (
-    <article className="mx-auto max-w-5xl space-y-8 px-4 py-10 sm:px-6">
+    <article className="mx-auto max-w-5xl space-y-8 px-3 py-6 sm:px-6 sm:py-10">
       <header className="anim-fade-up">
         <h1 className="text-3xl font-extrabold tracking-tight text-balance">{title}</h1>
         {!quizRunning && (

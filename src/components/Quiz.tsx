@@ -7,7 +7,7 @@
  * ten, which is why `generators` is a list.
  */
 
-import { type CSSProperties, useCallback, useMemo, useState } from 'react'
+import { type CSSProperties, type ReactNode, useCallback, useMemo, useRef, useState } from 'react'
 import { type Generator, type Question } from '../drills/types'
 import { type Payment } from '../engine/score'
 import { makeRng, randomSeed } from '../drills/random'
@@ -19,6 +19,7 @@ import { HandContext } from './HandContext'
 import { Tile } from './Tile'
 import { Badge, Button, Card, Meter, stagger } from './ui'
 import { ShareCertificate } from './ShareCertificate'
+import { ImmersiveButton, RotateHint, useImmersive } from './Immersive'
 import { chapterSubject } from '../share/subject'
 import { useSubjectStrings } from '../share/useSubject'
 
@@ -67,7 +68,10 @@ function PointsField({
   onEnter: () => void
 }) {
   return (
-    <label className="flex flex-col gap-1.5">
+    // `flex-1` with a floor rather than a fixed width: two of these side by side
+    // on a 390px screen used to overflow at 9rem each, and wrapping them to
+    // separate lines buried the second field below the fold.
+    <label className="flex min-w-[7.5rem] flex-1 flex-col gap-1.5 sm:max-w-44">
       <span className="text-xs font-semibold uppercase tracking-wide text-black/45 dark:text-white/45">
         {label}
       </span>
@@ -80,7 +84,7 @@ function PointsField({
         onKeyDown={(e) => {
           if (e.key === 'Enter') onEnter()
         }}
-        className="w-36 rounded-xl border border-black/15 bg-white px-3.5 py-2.5 text-right font-mono text-lg tabular-nums transition focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/25 disabled:opacity-60 dark:border-white/15 dark:bg-felt-900"
+        className="w-full rounded-xl border border-black/15 bg-white px-3 py-2.5 text-right font-mono text-lg tabular-nums transition focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/25 disabled:opacity-60 sm:px-3.5 dark:border-white/15 dark:bg-felt-900"
       />
     </label>
   )
@@ -135,6 +139,15 @@ export function Quiz({
 }) {
   const { t } = useI18n()
   const { progress, record, recordRun } = useProgress()
+
+  /**
+   * The element handed to the Fullscreen API, and the one the CSS fallback
+   * pins over the page. It wraps all three phases rather than the question
+   * alone, so finishing a run does not drop out of immersive mode just as the
+   * score appears.
+   */
+  const shellRef = useRef<HTMLDivElement>(null)
+  const immersive = useImmersive(shellRef)
 
   const [runSeed, setRunSeed] = useState(randomSeed)
   const [phase, setPhase] = useState<Phase>('intro')
@@ -261,10 +274,42 @@ export function Quiz({
     )
   }
 
+  /**
+   * The wrapper all three phases render into.
+   *
+   * Immersive mode is spelled as classes on this one element rather than as a
+   * portal, so the quiz keeps its place in the document — and therefore its
+   * state, its focus, and its position in the tab order — whether it is inline
+   * on the page or filling the screen.
+   *
+   * `h-dvh` rather than `h-screen`: on a phone `100vh` is the viewport with the
+   * browser's address bar *ignored*, so the bottom of the card — which is where
+   * the Check button is — would sit underneath it.
+   */
+  const shell = (children: ReactNode) => (
+    <div
+      ref={shellRef}
+      className={
+        immersive.active
+          ? 'fixed inset-0 z-50 flex h-dvh flex-col gap-2 overflow-y-auto overscroll-contain bg-felt-900 p-2 sm:p-4'
+          : ''
+      }
+    >
+      {immersive.active && <RotateHint />}
+      {children}
+      {/* Inline, the control sits below the quiz as a quiet offer. In immersive
+          mode it is the way out, so it comes along at the bottom of the scroll
+          where a thumb already is. */}
+      <div className={`flex ${immersive.active ? 'justify-end pb-1' : 'mt-3 justify-end'}`}>
+        <ImmersiveButton immersive={immersive} />
+      </div>
+    </div>
+  )
+
   // ---------------------------------------------------------------- Intro
 
   if (phase === 'intro') {
-    return (
+    return shell(
       <Card className="anim-fade-up">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
@@ -276,7 +321,7 @@ export function Quiz({
         <div className="mt-5">
           <Button onClick={start}>{t.t('quiz.start')}</Button>
         </div>
-      </Card>
+      </Card>,
     )
   }
 
@@ -296,7 +341,7 @@ export function Quiz({
     // Only celebrate the run that reached the cap, not every visit afterwards.
     const mastered = isMastered(progress, chapterId) && earned > 0
 
-    return (
+    return shell(
       <Card className="anim-fade-up">
         <h3 className="text-lg font-semibold tracking-tight">{t.t('quiz.resultsTitle')}</h3>
         {/* The score is the moment the quiz pays off, so it gets the one piece of
@@ -449,7 +494,7 @@ export function Quiz({
             />
           )}
         </div>
-      </Card>
+      </Card>,
     )
   }
 
@@ -459,14 +504,18 @@ export function Quiz({
   const answered = phase === 'answered'
   const wasCorrect = answers[answers.length - 1]?.correct ?? false
 
-  return (
+  return shell(
     <Card>
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-        <div>
-          <h3 className="text-lg font-semibold tracking-tight">
+      {/* The drill's own name is desktop furniture: on a phone it costs a line
+          that the hand needs, and the page heading above already says which
+          lesson this is. The counter and bar stay, because "3 of 10" is the one
+          thing a learner mid-run actually looks up at. */}
+      <div className="mb-3 flex items-center justify-between gap-3 sm:mb-4 short:mb-2">
+        <div className="min-w-0">
+          <h3 className="hidden truncate text-lg font-semibold tracking-tight sm:block short:hidden">
             {t.t(generators[index % generators.length].titleKey)}
           </h3>
-          <p className="text-sm text-black/55 dark:text-white/55">
+          <p className="text-xs text-black/55 sm:text-sm dark:text-white/55">
             {t.t('quiz.progress', { n: index + 1, total: QUIZ_LENGTH })}
           </p>
         </div>
@@ -477,7 +526,7 @@ export function Quiz({
           value={index + 1}
           max={QUIZ_LENGTH}
           label={t.t('quiz.progress', { n: index + 1, total: QUIZ_LENGTH })}
-          className="h-2 w-36"
+          className="h-2 w-20 shrink-0 sm:w-36"
           barClassName="sheen sheen-run relative"
         />
       </div>
@@ -485,15 +534,21 @@ export function Quiz({
       {/* Keyed on the index so each new question fades in as its own thing
           rather than swapping its text in place. */}
       <div key={index} className="anim-fade-up">
-        <p className="mb-1 text-lg font-medium tracking-tight">{question.prompt}</p>
+        <p className="mb-1 text-base font-medium tracking-tight sm:text-lg">{question.prompt}</p>
         {question.hint && (
-          <p className="mb-3 text-sm text-black/55 dark:text-white/55">{question.hint}</p>
+          <p className="mb-2 text-sm text-black/55 sm:mb-3 short:mb-1 dark:text-white/55">
+            {question.hint}
+          </p>
         )}
 
         {question.tiles && (
-          <div className="my-4">
+          <div className="my-3 sm:my-4 short:my-2">
             {question.context && <HandContext {...question.context} />}
-            <div className="pt-3 pb-1">
+            {/* The top padding is headroom for the selected tile, which lifts
+                clear of the row — without it a picked tile is clipped by the
+                context strip above. Tighter on a phone, where every line of
+                vertical space is one the hand could have used. */}
+            <div className="pt-2 pb-1 sm:pt-3 short:pt-2">
               <Hand
                 tiles={question.tiles}
                 calls={question.calls}
@@ -527,10 +582,18 @@ export function Quiz({
          * them left to right instead of reading a 2x2 block corner by corner,
          * which is what you actually do when weighing four candidate answers.
          * It also keeps the hand above them in view rather than pushed up the
-         * page. Below `sm` the row becomes a column, because four options
-         * abreast on a phone leaves each too narrow to read.
+         * page.
+         *
+         * A narrow phone cannot hold four abreast and keep each readable, so it
+         * gets a 2x2 block instead of the column it used to get: four stacked
+         * options ran past the bottom of the screen, which meant scrolling away
+         * from the hand to see the last one — and comparing an option against a
+         * hand you cannot see is the one thing this layout exists to prevent.
+         *
+         * Held sideways there is width again, so `landscape` takes the row back
+         * even below `sm`. That is the orientation immersive mode asks for.
          */
-        <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-4">
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-2.5 short:gap-2">
           {question.choices?.map((choice, i) => {
             const picked = selection.includes(choice.id)
             // Once graded, the right answer flashes a ring outward — the one
@@ -555,8 +618,10 @@ export function Quiz({
                 // makes each option narrow, so the height is what keeps it
                 // comfortably tappable on a phone. `min-h` rather than padding
                 // alone, so a one-line option and a wrapped two-line one are
-                // the same size and the row stays even.
-                className={`anim-fade-up flex min-h-[4.5rem] items-center justify-center gap-2 rounded-xl border px-3 py-4 text-center text-sm transition duration-200 ${tone}`}
+                // the same size and the row stays even. It relaxes on a short
+                // landscape screen, where four 4.5rem boxes plus the hand above
+                // them do not fit between the top of the page and the bottom.
+                className={`anim-fade-up flex min-h-[3.25rem] items-center justify-center gap-2 rounded-xl border px-2 py-2.5 text-center text-sm transition duration-200 sm:min-h-[4.5rem] sm:px-3 sm:py-4 short:min-h-[2.75rem] short:py-2 ${tone}`}
               >
                 {choice.tiles && choice.tiles.length > 0 && (
                   <span className="flex shrink-0 items-end gap-0.5">
@@ -585,7 +650,7 @@ export function Quiz({
           onKeyDown={(e) => {
             if (e.key === 'Enter' && canSubmit && !answered) submit()
           }}
-          className="w-44 rounded-xl border border-black/15 bg-white px-3.5 py-2.5 font-mono text-lg tabular-nums transition focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/25 dark:border-white/15 dark:bg-felt-900"
+          className="w-full max-w-44 rounded-xl border border-black/15 bg-white px-3.5 py-2.5 font-mono text-lg tabular-nums transition focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/25 dark:border-white/15 dark:bg-felt-900"
           placeholder={t.t('quiz.yourAnswer')}
         />
       )}
@@ -636,9 +701,13 @@ export function Quiz({
         <p className="text-sm text-black/55 dark:text-white/55">{t.t('quiz.tapTiles')}</p>
       )}
 
-      <div className="mt-5 flex flex-wrap items-center gap-3">
+      {/* The seed is a debugging affordance for reproducing a question, and on a
+          phone it was competing for the row the Check button needs — so below
+          `sm` it goes, and the button gets the full width it wants as a primary
+          target under a thumb. */}
+      <div className="mt-4 flex flex-wrap items-center gap-3 sm:mt-5 short:mt-3">
         {!answered ? (
-          <Button onClick={submit} disabled={!canSubmit}>
+          <Button onClick={submit} disabled={!canSubmit} className="w-full sm:w-auto">
             {t.t('quiz.check')}
           </Button>
         ) : (
@@ -646,12 +715,12 @@ export function Quiz({
             <Badge tone={wasCorrect ? 'good' : 'bad'} className={wasCorrect ? 'anim-pop' : 'anim-shake'}>
               {wasCorrect ? t.t('quiz.correct') : t.t('quiz.wrong')}
             </Badge>
-            <Button onClick={advance} variant="secondary">
+            <Button onClick={advance} variant="secondary" className="ml-auto sm:ml-0">
               {t.t(isLast ? 'quiz.seeResults' : 'quiz.next')}
             </Button>
           </>
         )}
-        <span className="ml-auto font-mono text-xs text-black/35 dark:text-white/35">
+        <span className="ml-auto hidden font-mono text-xs text-black/35 sm:inline dark:text-white/35">
           {t.t('quiz.seed', { n: question.seed })}
         </span>
       </div>
@@ -664,6 +733,6 @@ export function Quiz({
           {question.explanation}
         </div>
       )}
-    </Card>
+    </Card>,
   )
 }
