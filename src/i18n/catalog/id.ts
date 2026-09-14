@@ -196,7 +196,10 @@ export const messages = {
   'home.optional': 'Modul opsional',
   'home.accuracy': 'Akurasimu',
   'home.credit': 'Gambar tile dari FluffyStuff/riichi-mahjong-tiles, dirilis ke domain publik (CC0).',
-  'home.ruleset': 'Perhitungan mengikuti standar Tenhou / MJS / RC: lima merah aktif, tanyao terbuka boleh, kiriage mangan aktif (4 han 30 fu dibulatkan ke 8000), yakuman hitungan di 13 han.',
+  'home.ruleset': 'Aturan perhitungan: tanyao terbuka (kuitan) boleh, kiriage mangan aktif (4 han 30 fu dibulatkan ke 8000), yakuman hitungan di 13 han.',
+  'home.resetConfirm': 'Hapus semua progres? Tindakan ini tidak bisa dibatalkan.',
+  'home.resetYes': 'Hapus semuanya',
+  'home.resetNo': 'Simpan progres saya',
   'home.privacy': 'Progres hanya disimpan di peramban ini dan tidak pernah dikirim ke mana pun.',
   'home.siteLink': 'Selengkapnya tentang Surima di {site}',
   // ---- Modules ----

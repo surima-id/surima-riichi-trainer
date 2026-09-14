@@ -207,7 +207,10 @@ export const messages = {
   'home.credit':
     'Tile artwork from FluffyStuff/riichi-mahjong-tiles, released into the public domain (CC0).',
   'home.ruleset':
-    'Scoring follows the Tenhou / MJS / RC standard: red fives on, open all-simples allowed, kiriage mangan on (4 han 30 fu rounds up to 8000), counted yakuman at 13 han.',
+    'Scoring rules: open tanyao (kuitan) allowed, kiriage mangan on (4 han 30 fu rounds up to 8000), counted yakuman at 13 han.',
+  'home.resetConfirm': 'Erase all progress? This cannot be undone.',
+  'home.resetYes': 'Erase everything',
+  'home.resetNo': 'Keep my progress',
   'home.privacy': 'Progress is stored in this browser only, and never leaves it.',
   'home.siteLink': 'More from Surima at {site}',
 

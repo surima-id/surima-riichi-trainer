@@ -74,9 +74,9 @@ speak.
 
 ## Ruleset
 
-Tenhou / MJS / RC standard: red fives on, open all-simples (kuitan) allowed, **kiriage
-mangan on** (4 han 30 fu and 3 han 60 fu both round up to a mangan and pay 8000,
-not 7700), counted yakuman at 13 han, no double yakuman.
+Open tanyao (kuitan) allowed, **kiriage mangan on** (4 han 30 fu and 3 han 60 fu
+both round up to a mangan and pay 8000, not 7700), counted yakuman at 13 han.
+Red fives are on and there are no double yakuman.
 
 Kiriage is a threshold on the raw base rather than two special cases: 30 × 2^6
 and 60 × 2^5 are both 1920, and 1920 is the only sub-mangan value the rule

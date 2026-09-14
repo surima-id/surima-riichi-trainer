@@ -5,7 +5,7 @@
  * order is the pedagogy: you cannot count fu before you can read a hand.
  */
 
-import { type CSSProperties } from 'react'
+import { useState, type CSSProperties } from 'react'
 import { Link } from 'react-router-dom'
 import { Tile } from '../components/Tile'
 import { Badge, Button, Card, Meter, Pips, SectionTitle, stagger } from '../components/ui'
@@ -50,6 +50,9 @@ const PIP_COUNT = CHAPTER_CAP / 2
 export function Home() {
   const t = useT()
   const { progress, reset } = useProgress()
+  // Reset is destructive and irreversible, so the button only arms the
+  // question; the second click is the one that erases anything.
+  const [confirmingReset, setConfirmingReset] = useState(false)
   const weakest = weakestDrills(progress).slice(0, 3)
   const drillName = (id: string) => (DRILL_TITLE_KEYS[id] ? t.t(DRILL_TITLE_KEYS[id]) : id)
   const read = new Set(progress.completedLessons)
@@ -131,10 +134,30 @@ export function Home() {
                 <span className="font-mono text-xs tabular-nums">{percent}%</span>
               </span>
             )}
-            <Button variant="ghost" onClick={reset} className="ml-auto">
+            <Button variant="secondary" onClick={() => setConfirmingReset(true)} className="ml-auto">
               {t.t('home.reset')}
             </Button>
           </div>
+
+          {confirmingReset && (
+            <div className="anim-fade-up mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-dashed border-black/10 pt-4 text-sm dark:border-white/10">
+              <span className="font-medium">{t.t('home.resetConfirm')}</span>
+              <div className="ml-auto flex flex-wrap gap-2">
+                <Button variant="ghost" onClick={() => setConfirmingReset(false)}>
+                  {t.t('home.resetNo')}
+                </Button>
+                <Button
+                  variant="danger"
+                  onClick={() => {
+                    reset()
+                    setConfirmingReset(false)
+                  }}
+                >
+                  {t.t('home.resetYes')}
+                </Button>
+              </div>
+            </div>
+          )}
         </Card>
       )}
 

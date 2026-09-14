@@ -72,7 +72,7 @@ export function Prose({ children }: { children: ReactNode }) {
   )
 }
 
-type ButtonVariant = 'primary' | 'secondary' | 'ghost'
+type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger'
 
 const BUTTON_CLASSES: Record<ButtonVariant, string> = {
   primary:
@@ -80,6 +80,9 @@ const BUTTON_CLASSES: Record<ButtonVariant, string> = {
   secondary:
     'border border-black/10 bg-white text-black/80 hover:bg-black/5 dark:border-white/15 dark:bg-transparent dark:text-white/85 dark:hover:bg-white/10',
   ghost: 'text-black/60 hover:text-black dark:text-white/60 dark:hover:text-white',
+  // Red only on the click that actually destroys something, so the colour keeps
+  // meaning what it says.
+  danger: 'bg-red-600 text-white shadow-sm hover:bg-red-700 hover:shadow-md',
 }
 
 export function Button({
