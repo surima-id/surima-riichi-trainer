@@ -10,7 +10,7 @@ import { type Messages } from '../types'
 
 export const messages = {
   // ---- Language & chrome ----
-  'app.name': 'Surima Academy',
+  'app.name': 'SURIMA Academy',
   'app.site': 'surima.id',
   'app.siteUrl': 'https://surima.id',
   'app.tagline':
@@ -212,7 +212,7 @@ export const messages = {
   'home.resetYes': 'Erase everything',
   'home.resetNo': 'Keep my progress',
   'home.privacy': 'Progress is stored in this browser only, and never leaves it.',
-  'home.siteLink': 'More from Surima at {site}',
+  'home.siteLink': 'More from SURIMA at {site}',
 
   // ---- Modules ----
   'module.tiles.title': 'Learning the Tiles',

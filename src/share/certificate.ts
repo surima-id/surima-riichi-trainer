@@ -275,7 +275,7 @@ export async function renderCertificate(subject: CertSubject, size: CertSize): P
   ctx.lineWidth = 3
   ctx.strokeRect(pad / 2, pad / 2, width - pad, height - pad)
 
-  drawWordmark(ctx, pad, pad + 30, 'Surima Academy')
+  drawWordmark(ctx, pad, pad + 30, 'SURIMA Academy')
 
   ctx.textAlign = 'center'
   ctx.textBaseline = 'alphabetic'

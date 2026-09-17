@@ -7,7 +7,7 @@ const STRINGS = {
   mastered: 'Bab ini terkuasai',
   course: 'Seluruh kursus terkuasai',
   progress: '50% dikuasai',
-  appName: 'Surima Academy',
+  appName: 'SURIMA Academy',
   site: 'surima.id',
   dateLabel: '11 September 2026',
 }

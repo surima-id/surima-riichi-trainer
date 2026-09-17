@@ -1,4 +1,4 @@
-# Surima Academy — Riichi Mahjong Trainer
+# SURIMA Academy — Riichi Mahjong Trainer
 
 A web trainer for new riichi mahjong players, in the spirit of Riichi City's
 in-app Academy. It teaches the ladder every beginner has to climb — read tiles →

@@ -13,7 +13,7 @@
 
 export const messages = {
   // ---- Language & chrome ----
-  'app.name': 'Surima Academy',
+  'app.name': 'SURIMA Academy',
   'app.site': 'surima.id',
   'app.siteUrl': 'https://surima.id',
   'app.tagline': 'Pelatih untuk pemain baru riichi mahjong. Kerjakan modulnya berurutan — tiap modul mengajarkan satu bagian, lalu menguji kamu dengan tangan acak sampai melekat.',
@@ -201,7 +201,7 @@ export const messages = {
   'home.resetYes': 'Hapus semuanya',
   'home.resetNo': 'Simpan progres saya',
   'home.privacy': 'Progres hanya disimpan di peramban ini dan tidak pernah dikirim ke mana pun.',
-  'home.siteLink': 'Selengkapnya tentang Surima di {site}',
+  'home.siteLink': 'Selengkapnya tentang SURIMA di {site}',
   // ---- Modules ----
   'module.tiles.title': 'Mengenal Tile',
   'module.tiles.blurb': '34 tile, dua kelas yang penting, dora dan lima merah.',
